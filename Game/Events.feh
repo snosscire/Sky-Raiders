@@ -1,0 +1,26 @@
+namespace EventHandler {
+	array eventListeners;
+	function unregisterAllListeners() {
+		.eventListeners = [];
+	}
+	function registerListener( number type, object listener ) {
+		if( not .eventListeners.keyExists("$type") )
+			.eventListeners["$type"] = [];
+		.eventListeners["$type"][] = listener;
+	}
+	function update() {
+		object event;
+		while( event = Engine.nextEvent() ) {
+			if( .eventListeners.keyExists("${event.type}") ) {
+				.eventListeners["${event.type}"].each() using ( listener ) {
+					switch( event.type ) {
+						case Engine.EVENT_KEYDOWN: listener.onKeyDown(event); break;
+						case Engine.EVENT_KEYUP:   listener.onKeyUp(event); break;
+						case Engine.EVENT_QUIT:    listener.onQuit(event); break;
+					}
+				};
+			}
+		}
+	}
+}
+

@@ -1,0 +1,106 @@
+class Player {
+	number x;
+	number y;
+	number speed;
+	number turningSpeed;
+	number angle;
+	number spriteAngle;
+	object image;
+	object controller;
+	number health;
+	boolean stalling;
+	constructor {
+		.image = Engine.loadImageResource('ssh-askpass-gnome.png');
+		.health = 100.0;
+		.stalling = false;
+	}
+	destructor {
+		.image.unload();
+	}
+	function update() {
+		if( .health > 0.0 ) {
+			number halfWidth = .image.width() / 2;
+			number halfHeight = .image.height() / 2;
+			number radianAngle;
+			number gravityPercentage = 0.0;
+			number deltaSpeed;
+			number left;
+			number right;
+			number top;
+			number bottom;
+		
+			.controller.update(self);
+		
+			if( .stalling ) {
+				.angle = 90.0;
+				if( .spriteAngle >= 80.0 and .spriteAngle <= 100.0 ) {
+					.angle = .spriteAngle;
+					.stalling = false;
+				}
+			}
+
+			radianAngle = .angle * (Engine.PI / 180);
+			deltaSpeed = (.speed * Time.speedMultiplier);
+
+			if( /* down */ .angle < 180.0 and .angle > 0 ) {
+				number value = 90.0;
+				if( .angle < 90.0 ) {
+					value = .angle;
+				} else if( .angle > 45.0 ) {
+					value = 180.0 - .angle;
+				}
+				gravityPercentage = value / 90.0;
+				deltaSpeed = deltaSpeed + ((Game.GRAVITY * gravityPercentage) * Time.speedMultiplier);
+			} else if( /* up */ .angle > 180.0 and .angle < 360.0 ) {
+				number value = 90.0;
+				if( .angle < 270.0 ) {
+					value = .angle - 180.0;
+				} else if( .angle > 270.0 ) {
+					value = 360.0 - .angle;
+				}
+				gravityPercentage = value / 90.0;
+				deltaSpeed = deltaSpeed - ((Game.GRAVITY * gravityPercentage) * Time.speedMultiplier);
+			}
+
+			.x += (deltaSpeed * Engine.cos(radianAngle));
+			.y += (deltaSpeed * Engine.sin(radianAngle));
+			
+			left = .x - halfWidth;
+			right = .x + halfWidth;
+			top = .y - halfHeight;
+			bottom = .y + halfHeight;
+			
+			if( left <= 0 ) {
+				.angle = 180 - .angle;
+				.spriteAngle = .angle;
+			} else if( right >= Engine.screenWidth() ) {
+				.angle = 180 - .angle;
+				.spriteAngle = .angle;
+			} /*else if( top <= 0 ) {
+				.angle = 360 - .angle;
+			}*/
+			
+			if( .angle < 0.0 ) {
+				.angle += 360.0;
+			}
+			
+			if( .speed <= 0.0 ) {
+				.stalling = true;
+				.speed = 0.0;
+			}
+			
+			if( bottom >= Engine.screenHeight() ) {
+				.health = 0.0;
+			}
+		}
+	}
+	function draw() {
+		if( .health > 0.0 ) {
+			object rotatedImage = .image.rotate(-(.spriteAngle), false);
+			//Engine.drawImage(.image, .x - (.image.width() / 2), .y - (.image.height() / 2));
+			Engine.drawImage(rotatedImage, .x - (rotatedImage.width() / 2), .y - (rotatedImage.height() / 2));
+			rotatedImage.unload();
+		}
+	}
+}
+

@@ -1,0 +1,40 @@
+class KeyboardController {
+	number keyLeft;
+	number keyRight;
+	boolean turnLeft;
+	boolean turnRight;
+	constructor {
+		EventHandler.registerListener(Engine.EVENT_KEYDOWN, self);
+		EventHandler.registerListener(Engine.EVENT_KEYUP, self);
+	}
+	function update( object entity ) {
+		number value = entity.turningSpeed * Time.speedMultiplier;
+		if( .turnLeft ) {
+			if( not entity.stalling ) {
+				entity.angle = Engine.addToAngle(entity.angle, -value);
+			}
+			entity.spriteAngle = Engine.addToAngle(entity.spriteAngle, -value);
+		}
+		if( .turnRight ) {
+			if( not entity.stalling ) {
+				entity.angle = Engine.addToAngle(entity.angle, value);
+			}
+			entity.spriteAngle = Engine.addToAngle(entity.spriteAngle, value);
+		}
+	}
+	function onKeyDown( object event ) {
+		if( event.key == .keyLeft ) {
+			.turnLeft = true;
+		} else if( event.key == .keyRight ) {
+			.turnRight = true;
+		}
+	}
+	function onKeyUp( object event ) {
+		if( event.key == .keyLeft ) {
+			.turnLeft = false;
+		} else if( event.key == .keyRight ) {
+			.turnRight = false;
+		}
+	}
+}
+

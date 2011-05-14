@@ -1,0 +1,15 @@
+namespace modifies Array {
+	function each( array a ) {
+		if( recipient() != null ) {
+			number i = 0;
+			number size = a.size();
+			for( i = 0; i < size; i++ ) {
+				void rval = deliver( a[i] );
+				if( rval == false or rval == null )
+					return false;
+			}
+		}
+		return true;
+	}
+}
+

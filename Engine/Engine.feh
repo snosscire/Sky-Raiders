@@ -1,0 +1,34 @@
+uses 'Array';
+
+namespace modifies Engine {
+	number PI = 3.14159265;
+	string resourcePath;
+	string imageResourcePath;
+	function loadImageResource( string path ) {
+		string completePath = .imageResourcePath + path;
+		object image = .loadImage(completePath);
+		if( not image )
+			Engine.printLine("[Game] Error: could not load image '${completePath}'.");
+		return image;
+	}
+	function drawImage( object image, number x, number y ) {
+		.drawImage(image, x, y, 0, 0, image.width(), image.height());
+	}
+	function addToAngle( number angle, number value ) {
+		angle += value;
+		if( angle > 360.0 ) {
+			angle -= 360.0;
+		} else if( angle < 0.0 ) {
+			angle += 360.0;
+		}
+		return angle;
+	}
+}
+
+namespace Time {
+	number current;
+	number last;
+	number delta;
+	number speedMultiplier;
+}
+
