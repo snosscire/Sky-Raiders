@@ -2,6 +2,8 @@
 #include "key.h"
 #include "image.h"
 #include <math.h>
+#include <errno.h>
+#include <unistd.h>
 #include <SDL/SDL.h>
 #include <SDL/SDL_image.h>
 
@@ -11,7 +13,6 @@ FE_NATIVE_FUNCTION( game_engine_set_screen )
 {
 	double width = 0.0;
 	double height = 0.0;
-	/*char fullscreen = FE_FALSE;*/
 	double fullscreen = 0.0;
 	
 	Uint32 flags = 0;
@@ -29,6 +30,7 @@ FE_NATIVE_FUNCTION( game_engine_set_screen )
 	screen = SDL_SetVideoMode((int)width, (int)height, 0, flags);
 	if( screen )
 	{
+		SDL_SetColorKey(screen, SDL_SRCCOLORKEY | SDL_RLEACCEL, SDL_MapRGB(screen->format, 0, 0, 0));
 		FE_RETURN_TRUE;
 	}
 	FE_RETURN_FALSE;
@@ -126,6 +128,43 @@ FE_NATIVE_FUNCTION( game_engine_next_event )
 	FE_RETURN_NULL_OBJECT;
 }
 
+FE_NATIVE_FUNCTION( game_engine_current_working_directory ) {
+    int length = 128;
+    FeriteVariable *variable = NULL;
+    char *buffer = NULL;
+    char *returnValue = NULL;
+    
+    if( (buffer = fmalloc(length)) )
+    {
+        do
+        {
+            if( !(returnValue = getcwd(buffer, length - 1)) && errno == ERANGE )
+            {
+                length *= 2;
+                buffer = frealloc(buffer, length);
+            }
+        }
+        while( !returnValue && buffer && errno == ERANGE );
+    }
+    
+    if( returnValue )
+    {
+        variable = fe_new_str_static("getcwd", returnValue, 0, FE_CHARSET_DEFAULT);
+    }
+    else
+    {
+        ferite_set_error(script, errno, "%s", strerror(errno));
+        variable = fe_new_str_static("", "", 0, FE_CHARSET_DEFAULT);
+    }
+    
+    if(buffer)
+    {
+    	ffree(buffer);
+    }
+    
+    FE_RETURN_VAR(variable);
+}
+
 FE_NATIVE_FUNCTION( game_engine_current_time )
 {
 	FeriteVariable *current_time_variable = ferite_create_number_long_variable(script, "currentTime", SDL_GetTicks(), FE_STATIC);
@@ -135,13 +174,20 @@ FE_NATIVE_FUNCTION( game_engine_current_time )
 FE_NATIVE_FUNCTION( game_engine_load_image )
 {
 	FeriteString *path = NULL;
+	double convert = 0.0;
 	SDL_Surface *image = NULL;
 	
-	ferite_get_parameters(params, 1, &path);
+	ferite_get_parameters(params, 2, &path, &convert);
 	
 	image = IMG_Load(path->data);
 	if( image )
 	{
+		if( convert )
+		{
+			SDL_Surface *new = SDL_ConvertSurface(image, screen->format, SDL_SWSURFACE);
+			SDL_FreeSurface(image);
+			image = new;
+		}
 		FeriteNamespaceBucket *nsb = ferite_find_namespace(script, script->mainns, "Engine.Image", FENS_CLS);
 		FeriteVariable *image_variable = ferite_build_object(script, nsb->data);
 		VAO(image_variable)->odata = image;
@@ -233,10 +279,11 @@ void game_engine_init( FeriteScript *script )
 	FeriteFunction *update_screen_function = ferite_create_external_function(script, "updateScreen", game_engine_update_screen, "");
 	FeriteFunction *next_event_function = ferite_create_external_function(script, "nextEvent", game_engine_next_event, "");
 	FeriteFunction *current_time_function = ferite_create_external_function(script, "currentTime", game_engine_current_time, "");
-	FeriteFunction *load_image_function = ferite_create_external_function(script, "loadImage", game_engine_load_image, "s");
+	FeriteFunction *load_image_function = ferite_create_external_function(script, "loadImage", game_engine_load_image, "sn");
 	FeriteFunction *draw_image_function = ferite_create_external_function(script, "drawImage", game_engine_draw_image, "onnnnnn");
 	FeriteFunction *screen_width_function = ferite_create_external_function(script, "screenWidth", game_engine_screen_width, "");
 	FeriteFunction *screen_height_function = ferite_create_external_function(script, "screenHeight", game_engine_screen_height, "");
+	FeriteFunction *current_working_directory_function = ferite_create_external_function(script, "currentWorkingDirectory", game_engine_current_working_directory, "");
 
 	ferite_register_inherited_class(script, engine_namespace, "KeyboardEvent", NULL);
 	ferite_register_inherited_class(script, engine_namespace, "MouseButtonEvent", NULL);
@@ -261,6 +308,7 @@ void game_engine_init( FeriteScript *script )
 	ferite_register_ns_function(script, engine_namespace, draw_image_function);
 	ferite_register_ns_function(script, engine_namespace, screen_width_function);
 	ferite_register_ns_function(script, engine_namespace, screen_height_function);
+	ferite_register_ns_function(script, engine_namespace, current_working_directory_function);
 	
 	game_engine_key_init(script, engine_namespace);
 	game_engine_image_init(script, engine_namespace);

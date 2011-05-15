@@ -1,14 +1,17 @@
 uses 'Engine/Engine.feh';
 uses 'Game/Events.feh';
+uses 'Game/States.feh';
+uses 'Game/Menus.feh';
 uses 'Game/Entities.feh';
 uses 'Game/Controllers.feh';
 
 class Game {
 	static final number GRAVITY = 1.0;
 	static boolean running;
+	static object this;
+	static object currentState;
 	static function run() {
 		if( not .running ) {
-			object this = new Game();
 			object player;
 			object playerController;
 			object background;
@@ -16,35 +19,19 @@ class Game {
 			number frames = 0;
 			number fps = 0;
 			
-			Engine.resourcePath = './Resources/';
-			Engine.imageResourcePath = Engine.resourcePath + 'Images/';
-			
 			Engine.setScreen(640, 480, false);
 			
-			EventHandler.unregisterAllListeners();
-			EventHandler.registerListener(Engine.EVENT_QUIT, this);
-			EventHandler.registerListener(Engine.EVENT_KEYDOWN, this);
-			EventHandler.registerListener(Engine.EVENT_KEYUP, this);
-			
-			playerController = new KeyboardController();
-			playerController.keyLeft = Engine.KEY_LEFT;
-			playerController.keyRight = Engine.KEY_RIGHT;
-			player = new Player();
-			player.controller = playerController;
-			player.speed = 1.8;
-			player.turningSpeed = 1.0;
-			player.x = 200;
-			player.y = 100;
+			//EventHandler.unregisterAllListeners();
 			
 			Time.current = Engine.currentTime();
 			Time.last = Time.current;
 			Time.delta = 0;
 			Time.speedMultiplier = 0.0;
 			
-			background = Engine.loadImageResource('background.png');
+			Game.setState(new MenuState());
 			
 			.running = true;
-			while( .running ) {
+			while( .running and .currentState ) {
 				//frames++;
 				//fps = frames / (Engine.currentTime() / 1000.0);
 				//Engine.printLine('FPS: ' + fps);
@@ -53,31 +40,32 @@ class Game {
 				Time.delta = Time.current - Time.last;
 				Time.last = Time.current;
 				Time.speedMultiplier = Time.delta / 10.0;
-				//Engine.printLine('Delta time: ' + Time.delta);
 				EventHandler.update();
-				player.update();
+				.currentState.update();
 				Engine.clearScreen();
-				Engine.drawImage(background, 0, 0);
-				player.draw();
+				.currentState.draw();	
 				Engine.updateScreen();
 			}
 			
-			background.unload();
+			Engine.unloadImageResources();
 		}
 	}
 	static function quit() {
 		.running = false;
 	}
+	static function setState( object state ) {
+		if( .currentState )
+			.currentState.quit();
+		.currentState = state;
+		if( not .this ) {
+			.this = new Game();
+		}
+		EventHandler.unregisterAllListeners();
+		EventHandler.registerListener(Engine.EVENT_QUIT, .this);
+		.currentState.init();
+	}
 	function onQuit( object event ) {
 		Game.quit();
-	}
-	function onKeyDown( object event ) {
-		Engine.printLine('Key down: ' + event.key);
-		if( event.key == Engine.KEY_ESCAPE )
-			Game.quit();
-	}
-	function onKeyUp( object event ) {
-		Engine.printLine('Key up: ' + event.key);
 	}
 }
 

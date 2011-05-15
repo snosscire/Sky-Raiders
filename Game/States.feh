@@ -1,0 +1,91 @@
+class State {
+	function init();
+	function quit();
+	function update();
+	function draw();
+}
+
+class TestState extends State {
+	object player;
+	object background;
+	object font;
+	object menuState;
+	function constructor( object menuState ) {
+		.menuState = menuState;
+	}
+	function init() {
+		object playerController;
+		playerController = new KeyboardController();
+		playerController.keyLeft = Engine.KEY_LEFT;
+		playerController.keyRight = Engine.KEY_RIGHT;
+		.player = new Player();
+		.player.controller = playerController;
+		.player.speed = 1.8;
+		.player.turningSpeed = 1.0;
+		.player.x = 200;
+		.player.y = 100;
+		.background = Engine.loadImageResource('background.png');
+		.font = new Font('font-10.png', 10, 10);
+		EventHandler.registerListener(Engine.EVENT_KEYDOWN, self);
+	}
+	function quit() {
+		Engine.unloadImageResource(.background);
+		.player = null;
+	}
+	function update() {
+		.player.update();
+	}
+	function draw() {
+		Engine.drawImage(.background, 0, 0);
+		.font.drawText('hello world', 100, 100);
+		.player.draw();
+	}
+	function onKeyDown( object event ) {
+		if( event.key == Engine.KEY_ESCAPE ) {
+			Game.setState(.menuState);
+		}
+	}
+}
+
+class MenuState extends State {
+	object mainMenu;
+	object multiplayerMenu;
+	object currentMenu;
+	boolean initialized;
+	function init() {
+		object testState = new TestState(self);
+		object font = new Font('font-10.png', 10, 10);
+		.mainMenu = new Menu();
+		.mainMenu.setSelector('Menu/simple-selector.png');
+		.mainMenu.addItem(new TextMenuItem(font, "test", closure {
+			Game.setState(testState);
+		}));
+		.mainMenu.addItem(new TextMenuItem(font, "multiplayer"));
+		.mainMenu.addItem(new TextMenuItem(font, "options"));
+		.mainMenu.addItem(new TextMenuItem(font, "credits"));
+		.mainMenu.addItem(new TextMenuItem(font, "quit", closure {
+			Game.quit();
+		}));
+		.mainMenu.active = true;
+		.multiplayerMenu = new Menu();
+		.currentMenu = .mainMenu;
+		EventHandler.registerListener(Engine.EVENT_KEYDOWN, self);
+	}
+	function quit() {
+		.mainMenu = null;
+		.multiplayerMenu = null;
+	}
+	function update() {
+		
+	}
+	function draw() {
+		.currentMenu.draw();
+	}
+	function onKeyDown( object event ) {
+		if( event.key == Engine.KEY_ESCAPE ) {
+			if( .currentMenu == .mainMenu ) {
+				Game.quit();
+			}
+		}
+	}
+}

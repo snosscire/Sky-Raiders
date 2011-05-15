@@ -4,9 +4,10 @@
 #include <SDL/SDL.h>
 
 #include "array.h"
+#include "string.h"
 #include "engine.h"
 
-int main()
+int main(int argc, char *argv[] )
 {
 	FeriteScript *script = NULL;
 	char *error_message = NULL;
@@ -25,6 +26,7 @@ int main()
 		else
 		{
 			ferite_array_init(script);
+			ferite_string_init(script);
 			game_engine_init(script);
 			
 			ferite_script_execute(script);

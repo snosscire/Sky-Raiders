@@ -15,7 +15,7 @@ class Player {
 		.stalling = false;
 	}
 	destructor {
-		.image.unload();
+		Engine.unloadImageResource(.image);
 	}
 	function update() {
 		if( .health > 0.0 ) {

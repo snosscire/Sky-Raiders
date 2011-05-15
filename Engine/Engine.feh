@@ -1,15 +1,49 @@
-uses 'Array';
+uses 'Engine/Array.feh';
+uses 'Engine/Font.feh';
 
 namespace modifies Engine {
 	number PI = 3.14159265;
 	string resourcePath;
 	string imageResourcePath;
-	function loadImageResource( string path ) {
-		string completePath = .imageResourcePath + path;
-		object image = .loadImage(completePath);
-		if( not image )
-			Engine.printLine("[Game] Error: could not load image '${completePath}'.");
+	array imageResources;
+	function loadImageResource( string path, boolean convert ) {
+		object image;
+		if( (not .imageResources.keyExists(path)) or (.imageResources.keyExists(path) and .imageResources[path] == null) ) {
+			string completePath = .imageResourcePath + path;
+			Engine.printLine("[Game] Loading image resource: ${completePath}");
+			image = .loadImage(completePath, convert);
+			if( not image ) {
+				Engine.printLine("[Game] Error: could not load image '${completePath}'.");
+			} else {
+				image.path = path;
+				image.references = 1;
+				.imageResources[path] = image;
+			}
+		} else {
+			image = .imageResources[path];
+			image.references++;
+		}
 		return image;
+	}
+	function loadImageResource( string path ) {
+		return .loadImageResource(path, false);
+	}
+	function unloadImageResource( object image ) {
+		/*if( .imageResources.keyExists(image.path) and .imageResources[image.path] ) {
+			image.references--;
+			if( image.references == 0 ) {
+				Engine.printLine("[Game] Unloading image resource: ${image.path}");
+				.imageResources[image.path] = null;
+				image.unload();
+			}
+		} else {
+			image.unload();
+		}*/
+	}
+	function unloadImageResources() {
+		.imageResources.each() using ( image ) {
+			image.unload();
+		};
 	}
 	function drawImage( object image, number x, number y ) {
 		.drawImage(image, x, y, 0, 0, image.width(), image.height());
@@ -31,4 +65,9 @@ namespace Time {
 	number delta;
 	number speedMultiplier;
 }
+
+//Engine.resourcePath = Engine.currentWorkingDirectory() + '/Resources/';
+Engine.resourcePath = './Resources/';
+Engine.imageResourcePath = Engine.resourcePath + 'Images/';
+//Engine.printLine('Resource path: ' + Engine.resourcePath);
 

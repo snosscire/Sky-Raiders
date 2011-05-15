@@ -1,0 +1,48 @@
+CC=i686-pc-mingw32-gcc
+#FERITECONFIG=/usr/i686-pc-mingw32/sys-root/mingw/bin/ferite-config
+#SDLCONFIG=/usr/i686-pc-mingw32/sys-root/mingw/bin/sdl-config
+#DLLDIR=/usr/i686-pc-mingw32/sys-root/mingw/bin
+
+INCLUDEDIR=/usr/i686-pc-mingw32/sys-root/mingw/include
+LIBDIR=/usr/i686-pc-mingw32/sys-root/mingw/lib
+SDLINCLUDEDIR=$(INCLUDEDIR)/SDL
+
+FERITEDLL=/usr/i686-pc-mingw32/sys-root/mingw/bin/libferite-1.dll
+SDLDLL=/usr/i686-pc-mingw32/sys-root/mingw/bin/SDL.dll
+SDLIMAGEDLL=/usr/i686-pc-mingw32/sys-root/mingw/bin/SDL_image.dll
+SDLGFXDLL=/usr/i686-pc-mingw32/sys-root/mingw/bin/libSDL_gfx-13.dll
+
+#		$(SDLDLL) -lmingw32 -lSDLmain -lSDL -mwindows \
+#		`$(SDLCONFIG) --cflags --libs`
+
+
+all:
+	$(CC) -g -Wall -o game.exe \
+		-I$(INCLUDEDIR) \
+		-L$(LIBDIR) \
+		-I$(SDLINCLUDEDIR) -D_GNU_SOURCE=1 -Dmain=SDL_main \
+		/usr/i686-pc-mingw32/sys-root/mingw/lib/libmingw32.a \
+		$(SDLDLL) \
+		/usr/i686-pc-mingw32/sys-root/mingw/lib/libSDLmain.a \
+		-lmingw32 -mwindows \
+		$(SDLIMAGEDLL) \
+		$(SDLGFXDLL) \
+		$(FERITEDLL) -lferite \
+		Engine/game.c \
+		Engine/array.c \
+		Engine/string.c \
+		Engine/engine.c \
+		Engine/key.c \
+		Engine/image.c
+
+#all:
+#	$(CC) -g -Wall -o game.exe \
+#		-I$(DLLDIR) \
+#		`$(SDLCONFIG) --cflags --libs` \
+#		`$(FERITECONFIG) --cflags --libs` \
+#		Engine/game.c \
+#		Engine/array.c \
+#		Engine/engine.c \
+#		Engine/key.c \
+#		Engine/image.c
+

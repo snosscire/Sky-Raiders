@@ -6,6 +6,7 @@ all:
 		-lSDL_gfx \
 		Engine/game.c \
 		Engine/array.c \
+		Engine/string.c \
 		Engine/engine.c \
 		Engine/key.c \
 		Engine/image.c

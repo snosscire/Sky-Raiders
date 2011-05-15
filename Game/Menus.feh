@@ -1,0 +1,108 @@
+class Menu {
+	static final number ITEM_PADDING = 2;
+	boolean active;
+	array items;
+	number selectedItem;
+	object selectorImage;
+	constructor {
+		EventHandler.registerListener(Engine.EVENT_KEYUP, self);
+		EventHandler.registerListener(Engine.EVENT_KEYDOWN, self);
+	}
+	function setSelector( string imagePath ) {
+		.selectorImage = Engine.loadImageResource(imagePath, true);
+		.selectorImage.setTransparentColor(.selectorImage.getColor(0, 0, 0));
+	}
+	function addItem( object item ) {
+		.items[] = item;
+	}
+	function draw() {
+		if( .active ) {
+			number totalItemsHeight = 0;
+			number nextItemY;
+			number itemX;
+			object item;
+			.items.each() using ( item ) {
+				totalItemsHeight += item.height();
+			};
+			nextItemY = (Engine.screenHeight() - totalItemsHeight) / 2;
+			for( number i = 0; i < .items.size(); i++ ) {
+				object item = .items[i];
+				itemX = item.draw(nextItemY);
+				if( i == .selectedItem ) {
+					Engine.drawImage(.selectorImage, itemX - Menu.ITEM_PADDING - .selectorImage.width(), nextItemY);
+				}
+				nextItemY += item.height() + Menu.ITEM_PADDING;
+			}
+		}
+	}
+	function onKeyDown( object event ) {
+		if( .active ) {
+			if( event.key == Engine.KEY_UP ) {
+				number prevSelectedItem = .selectedItem;
+				number lastItem = .items.size() - 1;
+				if( .selectedItem == 0 ) {
+					.selectedItem = lastItem;
+				} else {
+					.selectedItem--;
+				}
+				.items[prevSelectedItem].deselect();
+				.items[.selectedItem].select();
+			} else if( event.key == Engine.KEY_DOWN ) {
+				number prevSelectedItem = .selectedItem;
+				number lastItem = .items.size() - 1;
+				if( .selectedItem == lastItem ) {
+					.selectedItem = 0;
+				} else {
+					.selectedItem++;
+				}
+				.items[prevSelectedItem].deselect();
+				.items[.selectedItem].select();
+			} else if( event.key == Engine.KEY_RETURN ) {
+				.items[.selectedItem].invoke();
+			}
+		}
+	}
+	function onKeyUp( object event ) {
+	}
+}
+
+class MenuItem {
+	function height();
+	function draw( number y );
+	function select();
+	function deselect();
+	function invoke();
+}
+
+class TextMenuItem extends MenuItem {
+	object font;
+	string text;
+	object block;
+	constructor( object font, string text ) {
+		.font = font;
+		.text = text;
+	}
+	constructor( object font, string text, object block ) {
+		.font = font;
+		.text = text;
+		.block = block;
+	}
+	function height() {
+		return .font.height;
+	}
+	function draw( number y ) {
+		number x = (Engine.screenWidth() / 2) - (.font.textWidth(.text) / 2);
+		.font.drawText(.text, x, y);
+		return x;
+	}
+	function invoke() {
+		if( .block ) {
+			.block.invoke();
+		}
+	}
+	function select() {
+	}
+	function deselect() {
+	}
+}
+

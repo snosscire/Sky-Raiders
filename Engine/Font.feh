@@ -1,0 +1,29 @@
+class Font {
+	object fontImage;
+	number width;
+	number height;
+	constructor( string filename, number w, number h ) {
+		.fontImage = Engine.loadImageResource('Fonts/' + filename, true);
+		.fontImage.setTransparentColor(.fontImage.getColor(0, 0, 0));
+		.width = w;
+		.height = h;
+	}
+	function textWidth( string text ) {
+		return text.length() * .width;
+	}
+	function drawText( string text, number x, number y ) {
+		number length = text.length();
+		number fontX;
+		number fontY;
+		number screenX;
+		number c;
+		for( number i = 0; i < length; i++ ) {
+			c = text[i].byteToNumber();
+			fontX = (c % 16) * .width;
+			fontY = (c / 16) * .height;
+			screenX = x + (i * .width);
+			Engine.drawImage(.fontImage, screenX, y, fontX, fontY, .width, .height);
+		}
+	}
+}
+
