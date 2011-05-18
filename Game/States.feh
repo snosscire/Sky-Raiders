@@ -44,6 +44,71 @@ class TestState extends State {
 	}
 }
 
+class MultiplayerState {
+	object menuState;
+	object client;
+	boolean connected;
+	array players = [];
+	object background;
+	constructor( object menuState ) {
+		.menuState = menuState;
+	}
+	function init() {
+		MessageHandler.registerListener(Network.MESSAGE_NEW_USER_ME, self);
+		MessageHandler.registerListener(Network.MESSAGE_NEW_USER, self);
+		.background = Engine.loadImageResource('background.png');
+		.connected = false;
+		.client = Network.Client.start("test", "1", "192.168.0.15", 8899, "Player");
+	}
+	function quit() {
+		.client.destroy();
+		.client = null;
+		.players = [];
+		Engine.unloadImageResource(.background);
+	}
+	function update() {
+		if( .connected ) {
+			.players.each() using ( player ) {
+				player.update();
+			};
+		}
+	}
+	function draw() {
+		if( .connected ) {
+			Engine.drawImage(.background, 0, 0);
+			.players.each() using ( player ) {
+				player.draw();
+			};
+		}
+	}
+	function onKeyDown( object event ) {
+		if( event.key == Engine.KEY_ESCAPE ) {
+			Game.setState(.menuState);
+		}
+	}
+	function onNewUserMe( object message ) {
+		object playerController;
+		object player;
+		player = new Player();
+		playerController = new KeyboardController();
+		playerController.keyLeft = Engine.KEY_LEFT;
+		playerController.keyRight = Engine.KEY_RIGHT;
+		player = new Player();
+		player.controller = playerController;
+		player.id = message.id;
+		player.name = message.name;
+		player.me = true;
+		player.speed = 1.8;
+		player.turningSpeed = 1.0;
+		player.x = 200;
+		player.y = 100;
+		.players[] = player;
+		.connected = true;
+	}
+	function onNewUser( object message ) {
+	}
+}
+
 class MenuState extends State {
 	object mainMenu;
 	object multiplayerMenu;
@@ -51,13 +116,16 @@ class MenuState extends State {
 	boolean initialized;
 	function init() {
 		object testState = new TestState(self);
+		object multiplayerState = new MultiplayerState(self);
 		object font = new Font('font-10.png', 10, 10);
 		.mainMenu = new Menu();
 		.mainMenu.setSelector('Menu/simple-selector.png');
 		.mainMenu.addItem(new TextMenuItem(font, "test", closure {
 			Game.setState(testState);
 		}));
-		.mainMenu.addItem(new TextMenuItem(font, "multiplayer"));
+		.mainMenu.addItem(new TextMenuItem(font, "multiplayer", closure {
+			Game.setState(multiplayerState);
+		}));
 		.mainMenu.addItem(new TextMenuItem(font, "options"));
 		.mainMenu.addItem(new TextMenuItem(font, "credits"));
 		.mainMenu.addItem(new TextMenuItem(font, "quit", closure {
@@ -86,3 +154,4 @@ class MenuState extends State {
 		}
 	}
 }
+

@@ -4,10 +4,14 @@ while( true ) {
 	while( server.messagesWaiting() ) {
 		object message = server.pullMessage();
 		if( message ) {
-			if( message.type == Network.MESSAGE_NEW_USER ) {
-				Engine.printLine('' + message.id);
-				Engine.printLine('' + message.name);
-				Engine.printLine('' + message.me);
+			switch( message.type )
+			{
+				case Network.MESSAGE_NEW_USER:
+					Engine.printLine("New user ${message.name} (${message.id}) connected.");
+					break;
+				case Network.MESSAGE_USER_DISCONNECTED:
+					Engine.printLine("User ${message.id} disconnected.");
+					break;
 			}
 		}
 	}

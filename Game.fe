@@ -42,6 +42,7 @@ class Game {
 				Time.last = Time.current;
 				Time.speedMultiplier = Time.delta / 10.0;
 				EventHandler.update();
+				MessageHandler.update();
 				.currentState.update();
 				Engine.clearScreen();
 				.currentState.draw();

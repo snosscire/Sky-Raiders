@@ -1,4 +1,6 @@
 class Player {
+	number id;
+	boolean me;
 	number x;
 	number y;
 	number speed;
