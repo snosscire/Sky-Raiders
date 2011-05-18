@@ -8,7 +8,6 @@ class State {
 class TestState extends State {
 	object player;
 	object background;
-	object font;
 	object menuState;
 	function constructor( object menuState ) {
 		.menuState = menuState;
@@ -25,7 +24,6 @@ class TestState extends State {
 		.player.x = 200;
 		.player.y = 100;
 		.background = Engine.loadImageResource('background.png');
-		.font = new Font('font-10.png', 10, 10);
 		EventHandler.registerListener(Engine.EVENT_KEYDOWN, self);
 	}
 	function quit() {
@@ -37,7 +35,6 @@ class TestState extends State {
 	}
 	function draw() {
 		Engine.drawImage(.background, 0, 0);
-		.font.drawText('hello world', 100, 100);
 		.player.draw();
 	}
 	function onKeyDown( object event ) {

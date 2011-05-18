@@ -13,12 +13,12 @@ int main(int argc, char *argv[] )
 	FeriteScript *script = NULL;
 	char *error_message = NULL;
 	
-	SDL_Init(SDL_INIT_VIDEO);
-	SDL_EnableUNICODE(1);
+	//SDL_Init(SDL_INIT_VIDEO);
+	//SDL_EnableUNICODE(1);
 	
 	if( ferite_init(0, NULL) )
 	{
-		script = ferite_script_compile("Game.fe");
+		script = ferite_script_compile("Server.fe");
 		if( ferite_has_compile_error(script) )
 		{
 			error_message = ferite_get_error_log(script);
@@ -46,7 +46,7 @@ int main(int argc, char *argv[] )
 		ferite_deinit();
 	}
 	
-	SDL_Quit();
+	//SDL_Quit();
 	
 	return 0;
 }

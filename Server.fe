@@ -1,0 +1,17 @@
+object server = Network.Server.start("test", "1", 8899, "Test Game");
+
+while( true ) {
+	while( server.messagesWaiting() ) {
+		object message = server.pullMessage();
+		if( message ) {
+			if( message.type == Network.MESSAGE_NEW_USER ) {
+				Engine.printLine('' + message.id);
+				Engine.printLine('' + message.name);
+				Engine.printLine('' + message.me);
+			}
+		}
+	}
+}
+
+server.destroy();
+

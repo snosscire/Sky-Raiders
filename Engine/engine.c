@@ -1,6 +1,7 @@
 #include "engine.h"
 #include "key.h"
 #include "image.h"
+#include "network.h"
 #include <math.h>
 #include <errno.h>
 #include <unistd.h>
@@ -312,5 +313,6 @@ void game_engine_init( FeriteScript *script )
 	
 	game_engine_key_init(script, engine_namespace);
 	game_engine_image_init(script, engine_namespace);
+	game_engine_network_init(script);
 }
 

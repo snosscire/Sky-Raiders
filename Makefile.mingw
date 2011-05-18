@@ -31,6 +31,7 @@ all:
 		Engine/game.c \
 		Engine/array.c \
 		Engine/string.c \
+		Engine/number.c \
 		Engine/engine.c \
 		Engine/key.c \
 		Engine/image.c

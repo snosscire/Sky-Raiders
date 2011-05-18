@@ -18,8 +18,11 @@ class Game {
 			
 			number frames = 0;
 			number fps = 0;
+			object font;
 			
 			Engine.setScreen(640, 480, false);
+			
+			font = new Font('font-10.png', 10, 10);
 			
 			//EventHandler.unregisterAllListeners();
 			
@@ -32,10 +35,8 @@ class Game {
 			
 			.running = true;
 			while( .running and .currentState ) {
-				//frames++;
-				//fps = frames / (Engine.currentTime() / 1000.0);
-				//Engine.printLine('FPS: ' + fps);
-				//Engine.printLine('Current time: ' + Engine.currentTime());
+				frames++;
+				fps = (frames / (Engine.currentTime() / 1000.0)).round();
 				Time.current = Engine.currentTime();
 				Time.delta = Time.current - Time.last;
 				Time.last = Time.current;
@@ -43,7 +44,8 @@ class Game {
 				EventHandler.update();
 				.currentState.update();
 				Engine.clearScreen();
-				.currentState.draw();	
+				.currentState.draw();
+				font.drawText('' + fps, Engine.screenWidth() - font.textWidth('' + fps) - 5, 5);
 				Engine.updateScreen();
 			}
 			
