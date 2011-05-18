@@ -11,10 +11,7 @@ FERITEDLL=/usr/i686-pc-mingw32/sys-root/mingw/bin/libferite-1.dll
 SDLDLL=/usr/i686-pc-mingw32/sys-root/mingw/bin/SDL.dll
 SDLIMAGEDLL=/usr/i686-pc-mingw32/sys-root/mingw/bin/SDL_image.dll
 SDLGFXDLL=/usr/i686-pc-mingw32/sys-root/mingw/bin/libSDL_gfx-13.dll
-
-#		$(SDLDLL) -lmingw32 -lSDLmain -lSDL -mwindows \
-#		`$(SDLCONFIG) --cflags --libs`
-
+GRAPPLEDLL=/usr/i686-pc-mingw32/sys-root/mingw/bin/libgrapple-0-9-2.dll
 
 all:
 	$(CC) -g -Wall -o game.exe \
@@ -27,6 +24,7 @@ all:
 		-lmingw32 -mwindows \
 		$(SDLIMAGEDLL) \
 		$(SDLGFXDLL) \
+		$(GRAPPLEDLL) \
 		$(FERITEDLL) -lferite \
 		Engine/game.c \
 		Engine/array.c \
@@ -34,16 +32,26 @@ all:
 		Engine/number.c \
 		Engine/engine.c \
 		Engine/key.c \
-		Engine/image.c
-
-#all:
-#	$(CC) -g -Wall -o game.exe \
-#		-I$(DLLDIR) \
-#		`$(SDLCONFIG) --cflags --libs` \
-#		`$(FERITECONFIG) --cflags --libs` \
-#		Engine/game.c \
-#		Engine/array.c \
-#		Engine/engine.c \
-#		Engine/key.c \
-#		Engine/image.c
+		Engine/image.c \
+		Engine/network.c
+	$(CC) -g -Wall -o server.exe \
+		-I$(INCLUDEDIR) \
+		-L$(LIBDIR) \
+		-I$(SDLINCLUDEDIR) -D_GNU_SOURCE=1 -Dmain=SDL_main \
+		/usr/i686-pc-mingw32/sys-root/mingw/lib/libmingw32.a \
+		$(SDLDLL) \
+		/usr/i686-pc-mingw32/sys-root/mingw/lib/libSDLmain.a \
+		-lmingw32 -mwindows \
+		$(SDLIMAGEDLL) \
+		$(SDLGFXDLL) \
+		$(GRAPPLEDLL) \
+		$(FERITEDLL) -lferite \
+		Engine/server.c \
+		Engine/array.c \
+		Engine/string.c \
+		Engine/number.c \
+		Engine/engine.c \
+		Engine/key.c \
+		Engine/image.c \
+		Engine/network.c
 
