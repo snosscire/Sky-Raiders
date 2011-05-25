@@ -1,39 +1,13 @@
-namespace MessageHandler {
-	object client;
-	array listeners;
-	function unregisterAllListeners() {
-		.listeners = [];
-	}
-	function registerListener( number type, object listener ) {
-		if( not .listeners.keyExists("$type") )
-			.listeners["$type"] = [];
-		.listeners["$type"][] = listener;
-	}
-	function update() {
-		if( .client ) {
-			object message;
-			while( .client.messagesWaiting() ) {
-				message = .client.pullMessage();
-				if( .listeners.keyExists("${message.type}") ) {
-					.listeners["${message.type}"].each() using ( listener ) {
-						switch( message.type ) {
-							case Network.MESSAGE_NEW_USER:           listener.onNewUser(message); break;
-							case Network.MESSAGE_NEW_USER_ME:        listener.onNewUserMe(message); break;
-							case Network.MESSAGE_CONNECTION_REFUSED: listener.onConnectionRefused(message); break;
-						}
-					};
-				}				
-			}
-		}
-	}
-	function resetClient() {
-		if( .client ) {
-			.client.destroy();
-		}
-		.client = null;
-	}
-	function setClient( object client ) {
-		.client = client;
+namespace modifies Network {
+	class EntityUpdateMessage {
+		number type;
+		number id;
+		number x;
+		number y;
+		number speed;
+		number angle;
+		number spriteAngle;
+		number health;
 	}
 }
 

@@ -57,9 +57,10 @@ class MultiplayerState extends State {
 	function init() {
 		if( not .listenersRegistered ) {
 			EventHandler.registerListener(Engine.EVENT_KEYDOWN, self);
+			MessageHandler.registerListener(Network.MESSAGE_CONNECTION_REFUSED, self);
 			MessageHandler.registerListener(Network.MESSAGE_NEW_USER_ME, self);
 			MessageHandler.registerListener(Network.MESSAGE_NEW_USER, self);
-			MessageHandler.registerListener(Network.MESSAGE_CONNECTION_REFUSED, self);
+			MessageHandler.registerListener(Network.MESSAGE_ENTITY_UPDATE, self);
 			.listenersRegistered = true;
 		}
 		.background = Engine.loadImageResource('background.png');
@@ -69,7 +70,7 @@ class MultiplayerState extends State {
 	function quit() {
 		.active = false;
 		.players = [];
-		MessageHandler.resetClient();
+		Network.disconnect();
 		Engine.unloadImageResource(.background);
 	}
 	function update() {
@@ -96,42 +97,26 @@ class MultiplayerState extends State {
 		}
 	}
 	
-	function onNewUserMe( object message ) {
-		if( .active ) {
-			object player;
-			Engine.printLine('onNewUserMe');
-			player = new Player();
+	function createPlayer( object message, boolean me ) {
+		object player;
+		player = new Player();
+		player.id = message.id;
+		player.name = message.name;
+		player.me = me;
+		player.speed = 1.8;
+		player.turningSpeed = 1.0;
+		player.x = 200;
+		player.y = 100;
+
+		if( me ) {
 			player.controller = new KeyboardController();
 			player.controller.keyLeft = Engine.KEY_LEFT;
 			player.controller.keyRight = Engine.KEY_RIGHT;
-			player.id = message.id;
-			player.name = message.name;
-			player.me = true;
-			player.speed = 1.8;
-			player.turningSpeed = 1.0;
-			player.x = 200;
-			player.y = 100;
-			.players[] = player;
-			.connected = true;
 		}
+		
+		.players["${message.id}"] = player;
 	}
-	function onNewUser( object message ) {
-		if( .active ) {
-			object player;
-			Engine.printLine('onNewUser');
-			player = new Player();
-			player = new Player();
-			player.controller = null;
-			player.id = message.id;
-			player.name = message.name;
-			player.me = false;
-			player.speed = 1.8;
-			player.turningSpeed = 1.0;
-			player.x = 200;
-			player.y = 100;
-			.players[] = player;
-		}
-	}
+	
 	function onConnectionRefused( object message ) {
 		string output = 'connection refused... ';
 		switch( message.reason ) {
@@ -143,6 +128,29 @@ class MultiplayerState extends State {
 			case Network.CONNECTION_REFUSED_PROTECTION_KEY_NOT_UNIQUE: output += 'protection key is not unique'; break;
 		}
 		Console.printLine(output);
+	}
+	function onNewUserMe( object message ) {
+		if( .active ) {
+			//Engine.printLine('onNewUserMe');
+			.createPlayer(message, true);
+			.connected = true;
+		}
+	}
+	function onNewUser( object message ) {
+		if( .active ) {
+			//Engine.printLine('onNewUser');
+			.createPlayer(message, false);
+		}
+	}
+	function onEntityUpdate( object message ) {
+		object player = .players["${message.id}"];
+		//Engine.printLine('onEntityUpdate');
+		player.x = message.x;
+		player.y = message.y;
+		player.speed = message.speed;
+		player.angle = message.angle;
+		player.spriteAngle = message.spriteAngle;
+		player.health = message.health;
 	}
 }
 

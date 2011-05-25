@@ -15,12 +15,13 @@ FE_NATIVE_FUNCTION( game_engine_network_server_start )
 	(*server) = grapple_server_init(name->data, version->data);
 	//grapple_server_ip_set(server, "127.0.0.1");
 	grapple_server_port_set(*server, port);
-	grapple_server_protocol_set(*server, GRAPPLE_PROTOCOL_UDP);
+	grapple_server_protocol_set(*server, GRAPPLE_PROTOCOL_TCP);
 	grapple_server_session_set(*server, session->data);
 	//grapple_server_maxusers_set(server, 8);
 	
 	if( grapple_server_start(*server) == GRAPPLE_OK )
 	{
+		//printf("Server started.\n");
 		FeriteNamespaceBucket *nsb = ferite_find_namespace(script, script->mainns, "Network.Server", FENS_CLS);
 		FeriteVariable *server_variable = ferite_build_object(script, nsb->data);
 		VAO(server_variable)->odata = server;
@@ -109,7 +110,7 @@ FE_NATIVE_FUNCTION( game_engine_network_server_pull_message )
 				message_variable = ferite_build_object(script, nsb->data);
 				FeriteVariable *type_variable = ferite_create_number_long_variable(script, "type", message->type, FE_STATIC);
 				FeriteVariable *id_variable = ferite_create_number_long_variable(script, "id", message->USER_MSG.id, FE_STATIC);
-				FeriteVariable *data_variable = ferite_create_string_variable_from_ptr(script, "data", (char *)message->USER_MSG.data, 0, FE_CHARSET_DEFAULT, FE_STATIC);
+				FeriteVariable *data_variable = ferite_create_string_variable_from_ptr(script, "data", (char *)message->USER_MSG.data, message->USER_MSG.length, FE_CHARSET_DEFAULT, FE_STATIC);
 				MARK_VARIABLE_AS_DISPOSABLE(type_variable);
 				MARK_VARIABLE_AS_DISPOSABLE(id_variable);
 				MARK_VARIABLE_AS_DISPOSABLE(data_variable);
@@ -165,8 +166,9 @@ FE_NATIVE_FUNCTION( game_engine_network_client_start )
 	(*client) = grapple_client_init(name->data, version->data);
 	grapple_client_address_set(*client, address->data);
 	grapple_client_port_set(*client, port);
-	grapple_client_protocol_set(*client, GRAPPLE_PROTOCOL_UDP);
+	grapple_client_protocol_set(*client, GRAPPLE_PROTOCOL_TCP);
 	grapple_client_name_set(*client, username->data);
+	
 	if( grapple_client_start(*client, 0) == GRAPPLE_OK )
 	{
 		FeriteNamespaceBucket *nsb = ferite_find_namespace(script, script->mainns, "Network.Client", FENS_CLS);
@@ -174,6 +176,10 @@ FE_NATIVE_FUNCTION( game_engine_network_client_start )
 		VAO(server_variable)->odata = client;
 		MARK_VARIABLE_AS_DISPOSABLE(server_variable);
 		FE_RETURN_VAR(server_variable);
+	}
+	else
+	{
+		//printf("Client error: %s\n", grapple_error_text(grapple_client_error_get(*client)));
 	}
 	FE_RETURN_NULL_OBJECT;
 }
@@ -257,7 +263,7 @@ FE_NATIVE_FUNCTION( game_engine_network_client_pull_message )
 				message_variable = ferite_build_object(script, nsb->data);
 				FeriteVariable *type_variable = ferite_create_number_long_variable(script, "type", message->type, FE_STATIC);
 				FeriteVariable *id_variable = ferite_create_number_long_variable(script, "id", message->USER_MSG.id, FE_STATIC);
-				FeriteVariable *data_variable = ferite_create_string_variable_from_ptr(script, "data", (char *)message->USER_MSG.data, 0, FE_CHARSET_DEFAULT, FE_STATIC);
+				FeriteVariable *data_variable = ferite_create_string_variable_from_ptr(script, "data", (char *)message->USER_MSG.data, message->USER_MSG.length, FE_CHARSET_DEFAULT, FE_STATIC);
 				MARK_VARIABLE_AS_DISPOSABLE(type_variable);
 				MARK_VARIABLE_AS_DISPOSABLE(id_variable);
 				MARK_VARIABLE_AS_DISPOSABLE(data_variable);
@@ -341,7 +347,7 @@ FE_NATIVE_FUNCTION( game_engine_network_client_send )
 	
 	ferite_get_parameters(params, 3, &target, &flags, &data);
 	
-	grapple_client_send(client, target, flags, data->data, data->length);
+	grapple_client_send(client, target, flags, (void *)data->data, data->length);
 	
 	FE_RETURN_VOID;
 }

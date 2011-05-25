@@ -12,6 +12,7 @@ class Player {
 	object controller;
 	number health;
 	boolean stalling;
+	
 	constructor {
 		.image = Engine.loadImageResource('ssh-askpass-gnome.png');
 		.health = 100.0;
@@ -20,6 +21,7 @@ class Player {
 	destructor {
 		Engine.unloadImageResource(.image);
 	}
+	
 	function update() {
 		if( .health > 0.0 ) {
 			number halfWidth = .image.width() / 2;
@@ -97,8 +99,13 @@ class Player {
 			if( bottom >= Engine.screenHeight() ) {
 				.health = 0.0;
 			}
+			
+			if( .me ) {
+				Network.sendEntityUpdate(self);
+			}
 		}
 	}
+	
 	function draw() {
 		if( .health > 0.0 ) {
 			object rotatedImage = .image.rotate(-(.spriteAngle), 1.0, false);

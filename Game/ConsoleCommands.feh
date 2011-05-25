@@ -4,15 +4,14 @@ class Game {
 			if( parameters.size() <= 2 ) {
 				string host = (parameters.size() >= 1 ? parameters[0] : 'localhost');
 				number port = (parameters.size() == 2 ? parameters[1].toNumber() : 8899);
-				object client;
+				boolean connected = false;
 				Console.printLine("------------------ connect ----------------------");
 				Console.printLine("connecting to ${host}:${port}...");
 				Console.flush();
-				client = Network.Client.start(Game.NAME, Game.VERSION, host, port, 'Player');
-				if( client ) {
+				connected = Network.connect(host, port, 'Player');
+				if( connected ) {
 					Console.printLine('successfully connected.');
 					Game.setState(Game.multiplayerState());
-					MessageHandler.setClient(client);
 				} else {
 					Console.printLine('failed.');
 				}
