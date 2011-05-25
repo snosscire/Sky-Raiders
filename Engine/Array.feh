@@ -4,12 +4,28 @@ namespace modifies Array {
 			number i = 0;
 			number size = a.size();
 			for( i = 0; i < size; i++ ) {
-				void rval = deliver( a[i] );
+				void rval = deliver(a[i]);
 				if( rval == false or rval == null )
 					return false;
 			}
 		}
 		return true;
+	}
+	function join( array a, string value ) {
+		number size = a.size();
+		number last = size - 1;
+		string result;
+		for( number i = 0; i < size; i++ ) {
+			if( recipient() != null ) {
+				result += deliver(a[i]);
+			} else {
+				result += a[i];
+			}
+			if( i < last ) {
+				result += value;
+			}
+		}
+		return result;
 	}
 }
 
