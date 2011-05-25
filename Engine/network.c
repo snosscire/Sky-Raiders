@@ -18,13 +18,16 @@ FE_NATIVE_FUNCTION( game_engine_network_server_start )
 	grapple_server_protocol_set(*server, GRAPPLE_PROTOCOL_UDP);
 	grapple_server_session_set(*server, session->data);
 	//grapple_server_maxusers_set(server, 8);
-	grapple_server_start(*server);
 	
-	FeriteNamespaceBucket *nsb = ferite_find_namespace(script, script->mainns, "Network.Server", FENS_CLS);
-	FeriteVariable *server_variable = ferite_build_object(script, nsb->data);
-	VAO(server_variable)->odata = server;
-	MARK_VARIABLE_AS_DISPOSABLE(server_variable);
-	FE_RETURN_VAR(server_variable);
+	if( grapple_server_start(*server) == GRAPPLE_OK )
+	{
+		FeriteNamespaceBucket *nsb = ferite_find_namespace(script, script->mainns, "Network.Server", FENS_CLS);
+		FeriteVariable *server_variable = ferite_build_object(script, nsb->data);
+		VAO(server_variable)->odata = server;
+		MARK_VARIABLE_AS_DISPOSABLE(server_variable);
+		FE_RETURN_VAR(server_variable);
+	}
+	FE_RETURN_NULL_OBJECT;
 }
 
 FE_NATIVE_FUNCTION( game_engine_network_server_destroy )
@@ -164,13 +167,15 @@ FE_NATIVE_FUNCTION( game_engine_network_client_start )
 	grapple_client_port_set(*client, port);
 	grapple_client_protocol_set(*client, GRAPPLE_PROTOCOL_UDP);
 	grapple_client_name_set(*client, username->data);
-	grapple_client_start(*client, 0);
-	
-	FeriteNamespaceBucket *nsb = ferite_find_namespace(script, script->mainns, "Network.Client", FENS_CLS);
-	FeriteVariable *server_variable = ferite_build_object(script, nsb->data);
-	VAO(server_variable)->odata = client;
-	MARK_VARIABLE_AS_DISPOSABLE(server_variable);
-	FE_RETURN_VAR(server_variable);
+	if( grapple_client_start(*client, 0) == GRAPPLE_OK )
+	{
+		FeriteNamespaceBucket *nsb = ferite_find_namespace(script, script->mainns, "Network.Client", FENS_CLS);
+		FeriteVariable *server_variable = ferite_build_object(script, nsb->data);
+		VAO(server_variable)->odata = client;
+		MARK_VARIABLE_AS_DISPOSABLE(server_variable);
+		FE_RETURN_VAR(server_variable);
+	}
+	FE_RETURN_NULL_OBJECT;
 }
 
 FE_NATIVE_FUNCTION( game_engine_network_client_destroy )
@@ -198,7 +203,6 @@ FE_NATIVE_FUNCTION( game_engine_network_client_pull_message )
 	if( message )
 	{
 		FeriteVariable *message_variable = NULL;
-		
 		switch( message->type )
 		{
 			case GRAPPLE_MSG_NEW_USER:
