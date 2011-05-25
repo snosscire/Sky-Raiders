@@ -1,0 +1,19 @@
+namespace modifies String {
+	function toArray( string s, string d ) {
+		array list = [];
+		string part;
+		for( number i = 0; i < s.length(); i++ ) {
+			if( s[i] == d[0] ) {
+				if( part ) {
+					list[] = part;
+				}
+				part = "";
+			} else {
+				part += s[i];
+			}
+		}
+		part and list[] = part;
+		return list;
+	}
+}
+
