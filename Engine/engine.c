@@ -18,6 +18,8 @@ FE_NATIVE_FUNCTION( game_engine_set_screen )
 	
 	Uint32 flags = 0;
 	
+	ferite_get_parameters(params, 3, &width, &height, &fullscreen);
+
 	flags |= SDL_HWSURFACE;
 	flags |= SDL_DOUBLEBUF;
 	
@@ -25,8 +27,6 @@ FE_NATIVE_FUNCTION( game_engine_set_screen )
 	{
 		flags |= SDL_FULLSCREEN;
 	}
-	
-	ferite_get_parameters(params, 3, &width, &height, &fullscreen);
 	
 	screen = SDL_SetVideoMode((int)width, (int)height, 0, flags);
 	if( screen )
