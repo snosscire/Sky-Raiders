@@ -12,11 +12,15 @@ class Player {
 	object controller;
 	number health;
 	boolean stalling;
+	array smokePuffs;
+	number nextSmokePuff;
 	
 	constructor {
 		.image = Engine.loadImageResource('ssh-askpass-gnome.png');
 		.health = 100.0;
 		.stalling = false;
+		for( number i = 0; i < 20; i++ )
+			.smokePuffs[] = new SmokePuff();
 	}
 	destructor {
 		Engine.unloadImageResource(.image);
@@ -33,6 +37,19 @@ class Player {
 			number right;
 			number top;
 			number bottom;
+			
+			if( Time.current >= .nextSmokePuff ) {
+				for( number i = 0; i < .smokePuffs.size(); i++ ) {
+					if( .smokePuffs[i].currentLifeTime <= 0 ) {
+						.smokePuffs[i].init(.x, .y);
+						break;
+					}
+				}
+				.nextSmokePuff = Time.current + 100;
+			}
+			for( number i = 0; i < .smokePuffs.size(); i++ ) {
+				.smokePuffs[i].update();
+			}
 			
 			if( .controller ) {
 				.controller.update(self);
@@ -108,10 +125,46 @@ class Player {
 	
 	function draw() {
 		if( .health > 0.0 ) {
-			object rotatedImage = .image.rotate(-(.spriteAngle), 1.0, false);
+			object rotatedImage;
+			.smokePuffs.each() using ( smokePuff ) {
+				smokePuff.draw();
+			};
 			//Engine.drawImage(.image, .x - (.image.width() / 2), .y - (.image.height() / 2));
+			rotatedImage = .image.rotate(-(.spriteAngle), 1.0, false);
 			Engine.drawImage(rotatedImage, .x - (rotatedImage.width() / 2), .y - (rotatedImage.height() / 2));
 			rotatedImage.unload();
+		}
+	}
+}
+
+class SmokePuff {
+	object image;
+	number x;
+	number y;
+	number zoom;
+	number lifeTime;
+	number currentLifeTime;
+	constructor {
+		.image = Engine.loadImageResource('smoke.png');
+	}
+	function init( number x, number y ) {
+		.x = x;
+		.y = y;
+		.zoom = 1.0;
+		.lifeTime = 2000;
+		.currentLifeTime = .lifeTime;
+	}
+	function update() {
+		if( .currentLifeTime > 0 ) {
+			.zoom = (.currentLifeTime + 0.0) / (.lifeTime + 0.0);
+			.currentLifeTime -= Time.delta;
+		}
+	}
+	function draw() {
+		if( .currentLifeTime > 0 ) {
+			object zoomedImage = .image.rotate(0, .zoom, false);
+			Engine.drawImage(zoomedImage, .x - (zoomedImage.width() / 2), .y - (zoomedImage.height() / 2));
+			zoomedImage.unload();
 		}
 	}
 }
