@@ -35,8 +35,9 @@ FE_NATIVE_FUNCTION( game_engine_image_rotate )
 	SDL_Surface *image = self->odata;
 	double angle = 0.0;
 	double smooth = 0.0;
-	ferite_get_parameters(params, 2, &angle, &smooth);
-	SDL_Surface *rotated_image = rotozoomSurfaceXY(image, angle, 1.0, 1.0, smooth);
+	double zoom = 0.0;
+	ferite_get_parameters(params, 2, &angle, &zoom, &smooth);
+	SDL_Surface *rotated_image = rotozoomSurfaceXY(image, angle, zoom, zoom, smooth);
 	if( rotated_image )
 	{
 		FeriteVariable *rotated_image_object = ferite_build_object(script, self->klass);
@@ -71,7 +72,7 @@ void game_engine_image_init( FeriteScript *script, FeriteNamespace *engine_names
 	FeriteFunction *unload_function = ferite_create_external_function(script, "unload", game_engine_image_unload, "");
 	FeriteFunction *width_function = ferite_create_external_function(script, "width", game_engine_image_width, "");
 	FeriteFunction *height_function = ferite_create_external_function(script, "height", game_engine_image_height, "");
-	FeriteFunction *rotate_function = ferite_create_external_function(script, "rotate", game_engine_image_rotate, "nn");
+	FeriteFunction *rotate_function = ferite_create_external_function(script, "rotate", game_engine_image_rotate, "nnn");
 	FeriteFunction *get_color_function = ferite_create_external_function(script, "getColor", game_engine_image_get_color, "nnn");
 	FeriteFunction *set_transparent_color_function = ferite_create_external_function(script, "setTransparentColor", game_engine_image_set_transparent_color, "n");
 	ferite_register_class_function(script, class, unload_function, FE_FALSE);
