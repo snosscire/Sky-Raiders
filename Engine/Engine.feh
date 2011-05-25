@@ -1,4 +1,5 @@
 uses 'Engine/Array.feh';
+uses 'Engine/String.feh';
 uses 'Engine/Font.feh';
 
 namespace modifies Engine {
@@ -6,6 +7,7 @@ namespace modifies Engine {
 	string resourcePath;
 	string imageResourcePath;
 	array imageResources;
+	array fonts;
 	function loadImageResource( string path, boolean convert ) {
 		object image;
 		if( (not .imageResources.keyExists(path)) or (.imageResources.keyExists(path) and .imageResources[path] == null) ) {
@@ -44,6 +46,16 @@ namespace modifies Engine {
 		.imageResources.each() using ( image ) {
 			image.unload();
 		};
+	}
+	function loadFont( string filename, number width, number height, number rightMargin ) {
+		if( not .fonts.keyExists(filename) ) {
+			object font = new Font(filename, width, height, rightMargin);
+			.fonts[filename] = font;
+		}
+		return .fonts[filename];
+	}
+	function loadFont( string filename, number width, number height ) {
+		return .loadFont(filename, width, height, 0);
 	}
 	function drawImage( object image, number x, number y ) {
 		.drawImage(image, x, y, 0, 0, image.width(), image.height());
