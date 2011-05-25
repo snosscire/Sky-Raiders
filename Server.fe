@@ -1,4 +1,4 @@
-object server = Network.Server.start("test", "1", 8899, "Test Game");
+object server = Network.Server.start("Unknown", "0.1", 8899, "Test Game");
 
 while( true ) {
 	while( server.messagesWaiting() ) {
