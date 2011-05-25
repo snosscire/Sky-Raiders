@@ -12,7 +12,7 @@ class Game {
 				if( client ) {
 					Console.printLine('successfully connected.');
 					Game.setState(Game.multiplayerState());
-					MessageHandler.setClient();
+					MessageHandler.setClient(client);
 				} else {
 					Console.printLine('failed.');
 				}
