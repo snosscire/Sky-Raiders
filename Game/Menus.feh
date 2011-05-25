@@ -36,7 +36,7 @@ class Menu {
 		}
 	}
 	function onKeyDown( object event ) {
-		if( .active ) {
+		if( .active and (not Console.active) ) {
 			if( event.key == Engine.KEY_UP ) {
 				number prevSelectedItem = .selectedItem;
 				number lastItem = .items.size() - 1;

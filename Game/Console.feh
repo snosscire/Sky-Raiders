@@ -1,0 +1,155 @@
+class Console {
+	static final number HISTORY_SIZE = 100;
+	static final number LINE_MARGIN = 3;
+	static boolean active;
+	static array history;
+	static array commands;
+	static object background;
+	static object border;
+	static object font;
+	static string currentLine;
+	static array previousLines;
+	
+	static function init( object font ) {
+		object this = new Console();
+		EventHandler.registerListener(Engine.EVENT_KEYDOWN, this);
+		.background = Engine.loadImageResource('Console/background.png');
+		.border = Engine.loadImageResource('Console/border.png');
+		.font = font;
+		.active = false;
+		.registerCommand('test', closure( array parameters ) {
+			Console.printLine('-------------- testing console --------------');
+			Console.printLine('parameters... ' + parameters.join(','));
+		});
+		.registerCommand('help', closure( parameters ) {
+			Console.printLine('------------ registered commands ------------');
+		});
+	}
+	
+	static function registerCommand( string command, object callback ) {
+		.commands[command] = callback;
+	}
+	static function invokeCommand( string command, array parameters ) {
+		if( .commands.keyExists(command) ) {
+			.commands[command].invoke(parameters);
+		}
+	}
+	
+	static function toggle() {
+		.active = (not .active);
+	}
+	static function printLine( string line ) {
+		if( .history.size() == Console.HISTORY_SIZE )
+			.history.deleteAt(0);
+		.history[] = line;
+	}
+	static function flush() {
+		// clear console?
+		// draw console
+	}
+	
+	static function draw() {
+		if( .active ) {
+			string promptLine = "]${.currentLine}_";
+			number currentHistoryLineY = 0;
+			number halfScreenHeight = Engine.screenHeight() / 2;
+			number borderX = 0;
+			number backgroundY = halfScreenHeight;/* - .background.height();*/
+			while( backgroundY > 0 ) {
+				number backgroundX = 0;
+				backgroundY -= .background.height();
+				while( backgroundX < Engine.screenWidth() ) {
+					Engine.drawImage(.background, backgroundX, backgroundY);
+					backgroundX += .background.width();
+				}
+			}
+			while( borderX < Engine.screenWidth() ) {
+				Engine.drawImage(.border, borderX, halfScreenHeight);
+				borderX += .border.width();
+			}
+			.font.drawText(promptLine, 0, halfScreenHeight - .font.height);
+			currentHistoryLineY = halfScreenHeight - .font.height - .font.height - Console.LINE_MARGIN;
+			for( number i = (.history.size() - 1); i >= 0 and currentHistoryLineY > 0; i-- ) {
+				.font.drawText(.history[i], 0, currentHistoryLineY);
+				currentHistoryLineY -= .font.height + Console.LINE_MARGIN;
+			}
+		}
+	}
+	
+	function onKeyDown( object event ) {
+		if( event.key == Engine.KEY_F1 ) {
+			Console.toggle();
+		}
+		if( Console.active ) {
+			switch( event.key ) {
+				case Engine.KEY_a:
+				case Engine.KEY_b:
+				case Engine.KEY_c:
+				case Engine.KEY_d:
+				case Engine.KEY_e:
+				case Engine.KEY_f:
+				case Engine.KEY_g:
+				case Engine.KEY_h:
+				case Engine.KEY_i:
+				case Engine.KEY_j:
+				case Engine.KEY_k:
+				case Engine.KEY_l:
+				case Engine.KEY_m:
+				case Engine.KEY_n:
+				case Engine.KEY_o:
+				case Engine.KEY_p:
+				case Engine.KEY_q:
+				case Engine.KEY_r:
+				case Engine.KEY_s:
+				case Engine.KEY_t:
+				case Engine.KEY_u:
+				case Engine.KEY_v:
+				case Engine.KEY_w:
+				case Engine.KEY_x:
+				case Engine.KEY_y:
+				case Engine.KEY_z:
+				case Engine.KEY_0:
+				case Engine.KEY_1:
+				case Engine.KEY_2:
+				case Engine.KEY_3:
+				case Engine.KEY_4:
+				case Engine.KEY_5:
+				case Engine.KEY_6:
+				case Engine.KEY_7:
+				case Engine.KEY_8:
+				case Engine.KEY_9:
+				case Engine.KEY_COMMA:
+				case Engine.KEY_MINUS:
+				case Engine.KEY_PERIOD:
+				case Engine.KEY_SLASH:
+				case Engine.KEY_SPACE:
+					Console.currentLine += String.numberToByte(event.unicode & 0x7F);
+					break;
+				case Engine.KEY_BACKSPACE: {
+					number length = Console.currentLine.length();
+					if( length == 1 ) {
+						Console.currentLine = "";
+					} else if( length > 1 ) {
+						Console.currentLine = Console.currentLine[..(length - 2)];
+					}
+					break;
+				}
+				case Engine.KEY_RETURN:
+					if( Console.currentLine ) {
+						array parts = Console.currentLine.toArray(' ');
+						array parameters = [];
+						Console.printLine(Console.currentLine);
+						for( number i = 1; i < parts.size(); i++ )
+							parameters[] = parts[i];
+						Console.invokeCommand(parts[0], parameters);
+						Console.currentLine = "";
+					}
+					break;
+				/*case Engine.KEY_ESCAPE:
+					Console.toggle();
+					break;*/
+			}
+		}
+	}
+}
+

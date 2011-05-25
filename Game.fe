@@ -1,15 +1,24 @@
 uses 'Engine/Engine.feh';
 uses 'Game/Events.feh';
+uses 'Game/Messages.feh';
+uses 'Game/Console.feh';
+uses 'Game/ConsoleCommands.feh';
 uses 'Game/States.feh';
 uses 'Game/Menus.feh';
 uses 'Game/Entities.feh';
 uses 'Game/Controllers.feh';
 
-class Game {
+class modifies Game {
+	static final string NAME = 'Unknown';
+	static final string VERSION = '0.1';
 	static final number GRAVITY = 1.0;
+	
 	static boolean running;
-	static object this;
+	
+	static object menuState;
+	static object multiplayerState;
 	static object currentState;
+	
 	static function run() {
 		if( not .running ) {
 			object player;
@@ -20,18 +29,30 @@ class Game {
 			number fps = 0;
 			object font;
 			
+			object this = new Game();
+			EventHandler.registerListener(Engine.EVENT_QUIT, this);
+			
 			Engine.setScreen(640, 480, false);
+			//Engine.setScreen(1280, 800, true);
+			//Engine.setScreen(640, 480, true);
 			
-			font = new Font('font-10.png', 10, 10);
+			font = Engine.loadFont('font-10.png', 10, 10);
 			
-			//EventHandler.unregisterAllListeners();
+			Console.init(Engine.loadFont('font-console.png', 10, 10, -2));
+			//Console.init(Engine.loadFont('font-bachler.bmp', 10, 10));
+			//Console.init(font);
+			
+			Console.registerCommand('quit', closure( parameters ) {
+				Game.quit();
+			});
+			.registerConsoleCommands();
 			
 			Time.current = Engine.currentTime();
 			Time.last = Time.current;
 			Time.delta = 0;
 			Time.speedMultiplier = 0.0;
 			
-			Game.setState(new MenuState());
+			Game.setState(.menuState());
 			
 			.running = true;
 			while( .running and .currentState ) {
@@ -46,27 +67,37 @@ class Game {
 				.currentState.update();
 				Engine.clearScreen();
 				.currentState.draw();
-				font.drawText('' + fps, Engine.screenWidth() - font.textWidth('' + fps) - 5, 5);
+				Console.draw();
+				font.drawText("$fps", Engine.screenWidth() - font.textWidth("$fps") - 5, 5);
 				Engine.updateScreen();
 			}
 			
+			.menuState and .menuState.quit();
+			.multiplayerState and .multiplayerState.quit();
 			Engine.unloadImageResources();
 		}
 	}
 	static function quit() {
 		.running = false;
 	}
+	
+	static function menuState() {
+		if( not .menuState )
+			.menuState = new MenuState();
+		return .menuState;
+	}
+	static function multiplayerState() {
+		if( not .multiplayerState )
+			.multiplayerState = new MultiplayerState();
+		return .multiplayerState;
+	}
 	static function setState( object state ) {
 		if( .currentState )
 			.currentState.quit();
 		.currentState = state;
-		if( not .this ) {
-			.this = new Game();
-		}
-		EventHandler.unregisterAllListeners();
-		EventHandler.registerListener(Engine.EVENT_QUIT, .this);
 		.currentState.init();
 	}
+	
 	function onQuit( object event ) {
 		Game.quit();
 	}

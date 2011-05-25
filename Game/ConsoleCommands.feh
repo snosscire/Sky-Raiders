@@ -1,0 +1,25 @@
+class Game {
+	static function registerConsoleCommands() {
+		Console.registerCommand('connect', closure( parameters ) {
+			if( parameters.size() <= 2 ) {
+				string host = (parameters.size() >= 1 ? parameters[0] : 'localhost');
+				number port = (parameters.size() == 2 ? parameters[1].toNumber() : 8899);
+				object client;
+				Console.printLine("------------------ connect ----------------------");
+				Console.printLine("connecting to ${host}:${port}...");
+				Console.flush();
+				client = Network.Client.start(Game.NAME, Game.VERSION, host, port, 'Player');
+				if( client ) {
+					Console.printLine('successfully connected.');
+					Game.setState(Game.multiplayerState());
+					MessageHandler.setClient();
+				} else {
+					Console.printLine('failed.');
+				}
+			} else {
+				Console.printLine('usage: connect [host] [port]');
+			}
+		});
+	}
+}
+

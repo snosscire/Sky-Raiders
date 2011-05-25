@@ -23,17 +23,21 @@ class KeyboardController {
 		}
 	}
 	function onKeyDown( object event ) {
-		if( event.key == .keyLeft ) {
-			.turnLeft = true;
-		} else if( event.key == .keyRight ) {
-			.turnRight = true;
+		if( not Console.active ) {
+			if( event.key == .keyLeft ) {
+				.turnLeft = true;
+			} else if( event.key == .keyRight ) {
+				.turnRight = true;
+			}
 		}
 	}
 	function onKeyUp( object event ) {
-		if( event.key == .keyLeft ) {
-			.turnLeft = false;
-		} else if( event.key == .keyRight ) {
-			.turnRight = false;
+		if( not Console.active ) {
+			if( event.key == .keyLeft ) {
+				.turnLeft = false;
+			} else if( event.key == .keyRight ) {
+				.turnRight = false;
+			}
 		}
 	}
 }

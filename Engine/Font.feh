@@ -2,11 +2,17 @@ class Font {
 	object fontImage;
 	number width;
 	number height;
+	number rightMargin;
 	constructor( string filename, number w, number h ) {
 		.fontImage = Engine.loadImageResource('Fonts/' + filename, true);
 		.fontImage.setTransparentColor(.fontImage.getColor(0, 0, 0));
 		.width = w;
 		.height = h;
+		.rightMargin = 0;
+	}
+	constructor( string filename, number w, number h, number rm ) {
+		self(filename, w, h);
+		.rightMargin = rm;
 	}
 	function textWidth( string text ) {
 		return text.length() * .width;
@@ -19,7 +25,7 @@ class Font {
 		number c;
 		for( number i = 0; i < length; i++ ) {
 			c = text[i].byteToNumber();
-			fontX = (c % 16) * .width;
+			fontX = ((c % 16) * .width) + .rightMargin;
 			fontY = (c / 16) * .height;
 			screenX = x + (i * .width);
 			Engine.drawImage(.fontImage, screenX, y, fontX, fontY, .width, .height);

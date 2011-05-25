@@ -1,4 +1,6 @@
 class State {
+	boolean active;
+	boolean listenersRegistered;
 	function init();
 	function quit();
 	function update();
@@ -8,10 +10,6 @@ class State {
 class TestState extends State {
 	object player;
 	object background;
-	object menuState;
-	function constructor( object menuState ) {
-		.menuState = menuState;
-	}
 	function init() {
 		object playerController;
 		playerController = new KeyboardController();
@@ -24,11 +22,15 @@ class TestState extends State {
 		.player.x = 200;
 		.player.y = 100;
 		.background = Engine.loadImageResource('background.png');
-		EventHandler.registerListener(Engine.EVENT_KEYDOWN, self);
+		.active = true;
+		if( not .listenersRegistered ) {
+			EventHandler.registerListener(Engine.EVENT_KEYDOWN, self);
+		}
 	}
 	function quit() {
-		Engine.unloadImageResource(.background);
+		.active = false;
 		.player = null;
+		Engine.unloadImageResource(.background);
 	}
 	function update() {
 		.player.update();
@@ -38,32 +40,36 @@ class TestState extends State {
 		.player.draw();
 	}
 	function onKeyDown( object event ) {
-		if( event.key == Engine.KEY_ESCAPE ) {
-			Game.setState(.menuState);
+		if( .active and (not Console.active) ) {
+			if( event.key == Engine.KEY_ESCAPE ) {
+				Game.setState(Game.menuState());
+			}
 		}
 	}
 }
 
-class MultiplayerState {
-	object menuState;
+class MultiplayerState extends State {
 	object client;
 	boolean connected;
-	array players = [];
+	array players;
 	object background;
-	constructor( object menuState ) {
-		.menuState = menuState;
-	}
+	
 	function init() {
-		MessageHandler.registerListener(Network.MESSAGE_NEW_USER_ME, self);
-		MessageHandler.registerListener(Network.MESSAGE_NEW_USER, self);
+		if( not .listenersRegistered ) {
+			EventHandler.registerListener(Engine.EVENT_KEYDOWN, self);
+			MessageHandler.registerListener(Network.MESSAGE_NEW_USER_ME, self);
+			MessageHandler.registerListener(Network.MESSAGE_NEW_USER, self);
+			MessageHandler.registerListener(Network.MESSAGE_CONNECTION_REFUSED, self);
+			.listenersRegistered = true;
+		}
 		.background = Engine.loadImageResource('background.png');
 		.connected = false;
-		.client = Network.Client.start("test", "1", "192.168.0.15", 8899, "Player");
+		.active = true;
 	}
 	function quit() {
-		.client.destroy();
-		.client = null;
+		.active = false;
 		.players = [];
+		MessageHandler.resetClient();
 		Engine.unloadImageResource(.background);
 	}
 	function update() {
@@ -81,31 +87,62 @@ class MultiplayerState {
 			};
 		}
 	}
+	
 	function onKeyDown( object event ) {
-		if( event.key == Engine.KEY_ESCAPE ) {
-			Game.setState(.menuState);
+		if( .active and (not Console.active) ) {
+			if( event.key == Engine.KEY_ESCAPE ) {
+				Game.setState(Game.menuState());
+			}
 		}
 	}
+	
 	function onNewUserMe( object message ) {
-		object playerController;
-		object player;
-		player = new Player();
-		playerController = new KeyboardController();
-		playerController.keyLeft = Engine.KEY_LEFT;
-		playerController.keyRight = Engine.KEY_RIGHT;
-		player = new Player();
-		player.controller = playerController;
-		player.id = message.id;
-		player.name = message.name;
-		player.me = true;
-		player.speed = 1.8;
-		player.turningSpeed = 1.0;
-		player.x = 200;
-		player.y = 100;
-		.players[] = player;
-		.connected = true;
+		if( .active ) {
+			object player;
+			Engine.printLine('onNewUserMe');
+			player = new Player();
+			player.controller = new KeyboardController();
+			player.controller.keyLeft = Engine.KEY_LEFT;
+			player.controller.keyRight = Engine.KEY_RIGHT;
+			player.id = message.id;
+			player.name = message.name;
+			player.me = true;
+			player.speed = 1.8;
+			player.turningSpeed = 1.0;
+			player.x = 200;
+			player.y = 100;
+			.players[] = player;
+			.connected = true;
+		}
 	}
 	function onNewUser( object message ) {
+		if( .active ) {
+			object player;
+			Engine.printLine('onNewUser');
+			player = new Player();
+			player = new Player();
+			player.controller = null;
+			player.id = message.id;
+			player.name = message.name;
+			player.me = false;
+			player.speed = 1.8;
+			player.turningSpeed = 1.0;
+			player.x = 200;
+			player.y = 100;
+			.players[] = player;
+		}
+	}
+	function onConnectionRefused( object message ) {
+		string output = 'connection refused... ';
+		switch( message.reason ) {
+			case Network.CONNECTION_REFUSED_VERSION_MISMATCH:          output += 'version mismatch.'; break;
+			case Network.CONNECTION_REFUSED_SERVER_FULL:               output += 'server full.'; break;
+			case Network.CONNECTION_REFUSED_SERVER_CLOSED:             output += 'server closed.'; break;
+			case Network.CONNECTION_REFUSED_PASSWORD_MISMATCH:         output += 'password mismatch.'; break;
+			case Network.CONNECTION_REFUSED_NAME_NOT_UNIQUE:           output += 'name is not unique.'; break;
+			case Network.CONNECTION_REFUSED_PROTECTION_KEY_NOT_UNIQUE: output += 'protection key is not unique'; break;
+		}
+		Console.printLine(output);
 	}
 }
 
@@ -113,18 +150,16 @@ class MenuState extends State {
 	object mainMenu;
 	object multiplayerMenu;
 	object currentMenu;
-	boolean initialized;
 	function init() {
-		object testState = new TestState(self);
-		object multiplayerState = new MultiplayerState(self);
-		object font = new Font('font-10.png', 10, 10);
+		object testState = new TestState();
+		object font = Engine.loadFont('font-10.png', 10, 10);
 		.mainMenu = new Menu();
 		.mainMenu.setSelector('Menu/simple-selector.png');
 		.mainMenu.addItem(new TextMenuItem(font, "test", closure {
 			Game.setState(testState);
 		}));
 		.mainMenu.addItem(new TextMenuItem(font, "multiplayer", closure {
-			Game.setState(multiplayerState);
+			Game.setState(Game.multiplayerState());
 		}));
 		.mainMenu.addItem(new TextMenuItem(font, "options"));
 		.mainMenu.addItem(new TextMenuItem(font, "credits"));
@@ -134,11 +169,17 @@ class MenuState extends State {
 		.mainMenu.active = true;
 		.multiplayerMenu = new Menu();
 		.currentMenu = .mainMenu;
-		EventHandler.registerListener(Engine.EVENT_KEYDOWN, self);
+		.active = true;
+		if( not .listenersRegistered ) {
+			EventHandler.registerListener(Engine.EVENT_KEYDOWN, self);
+			.listenersRegistered = true;
+		}
 	}
 	function quit() {
+		.active = false;
 		.mainMenu = null;
 		.multiplayerMenu = null;
+		.currentMenu = null;
 	}
 	function update() {
 		
@@ -147,9 +188,11 @@ class MenuState extends State {
 		.currentMenu.draw();
 	}
 	function onKeyDown( object event ) {
-		if( event.key == Engine.KEY_ESCAPE ) {
-			if( .currentMenu == .mainMenu ) {
-				Game.quit();
+		if( .active and (not Console.active) ) {
+			if( event.key == Engine.KEY_ESCAPE ) {
+				if( .currentMenu == .mainMenu ) {
+					Game.quit();
+				}
 			}
 		}
 	}
