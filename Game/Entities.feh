@@ -1,3 +1,13 @@
+class Entity {
+	static number dt;
+	static number sm;
+	static function speedMultiplier( number dt ) {
+		if( dt != .dt )
+			.sm = dt / 10.0;
+		return .sm;
+	}
+}
+
 class Player {
 	number id;
 	boolean me;
@@ -26,7 +36,7 @@ class Player {
 		Engine.unloadImageResource(.image);
 	}
 	
-	function update() {
+	function update( number deltaTime ) {
 		if( .health > 0.0 ) {
 			number halfWidth = .image.width() / 2;
 			number halfHeight = .image.height() / 2;
@@ -48,11 +58,11 @@ class Player {
 				.nextSmokePuff = Time.current + 100;
 			}
 			for( number i = 0; i < .smokePuffs.size(); i++ ) {
-				.smokePuffs[i].update();
+				.smokePuffs[i].update(deltaTime);
 			}
 			
 			if( .controller ) {
-				.controller.update();
+				.controller.update(deltaTime);
 			}
 			
 			if( .stalling ) {
@@ -64,7 +74,7 @@ class Player {
 			}
 
 			radianAngle = .angle * (Engine.PI / 180);
-			deltaSpeed = (.speed * Time.speedMultiplier);
+			deltaSpeed = (.speed * Entity.speedMultiplier(deltaTime));
 
 			if( /* down */ .angle < 180.0 and .angle > 0 ) {
 				number value = 90.0;
@@ -74,7 +84,7 @@ class Player {
 					value = 180.0 - .angle;
 				}
 				gravityPercentage = value / 90.0;
-				deltaSpeed = deltaSpeed + ((Game.GRAVITY * gravityPercentage) * Time.speedMultiplier);
+				deltaSpeed = deltaSpeed + ((Game.GRAVITY * gravityPercentage) * Entity.speedMultiplier(deltaTime));
 			} else if( /* up */ .angle > 180.0 and .angle < 360.0 ) {
 				number value = 90.0;
 				if( .angle < 270.0 ) {
@@ -83,7 +93,7 @@ class Player {
 					value = 360.0 - .angle;
 				}
 				gravityPercentage = value / 90.0;
-				deltaSpeed = deltaSpeed - ((Game.GRAVITY * gravityPercentage) * Time.speedMultiplier);
+				deltaSpeed = deltaSpeed - ((Game.GRAVITY * gravityPercentage) * Entity.speedMultiplier(deltaTime));
 			}
 
 			.x += (deltaSpeed * Engine.cos(radianAngle));
@@ -154,10 +164,10 @@ class SmokePuff {
 		.lifeTime = 2000;
 		.currentLifeTime = .lifeTime;
 	}
-	function update() {
+	function update( number deltaTime ) {
 		if( .currentLifeTime > 0 ) {
 			.zoom = (.currentLifeTime + 0.0) / (.lifeTime + 0.0);
-			.currentLifeTime -= Time.delta;
+			.currentLifeTime -= deltaTime;
 		}
 	}
 	function draw() {

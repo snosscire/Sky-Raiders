@@ -71,13 +71,6 @@ namespace modifies Engine {
 	}
 }
 
-namespace Time {
-	number current;
-	number last;
-	number delta;
-	number speedMultiplier;
-}
-
 //Engine.resourcePath = Engine.currentWorkingDirectory() + '/Resources/';
 Engine.resourcePath = './Resources/';
 Engine.imageResourcePath = Engine.resourcePath + 'Images/';

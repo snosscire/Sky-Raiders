@@ -31,7 +31,11 @@ class TestState extends State {
 		Engine.unloadImageResource(.background);
 	}
 	function update() {
-		.player.update();
+		number deltaTime = Time.delta;
+		while( deltaTime > 0 ) {
+			.player.update(deltaTime);
+			deltaTime -= 5;
+		}
 	}
 	function draw() {
 		Engine.drawImage(.background, 0, 0);
@@ -75,7 +79,7 @@ class MultiplayerState extends State {
 	function update() {
 		if( .connected ) {
 			.players.each() using ( player ) {
-				player.update();
+				player.update(Time.delta);
 			};
 		}
 	}

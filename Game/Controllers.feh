@@ -9,8 +9,8 @@ class KeyboardPlayerController {
 		EventHandler.registerListener(Engine.EVENT_KEYDOWN, self);
 		EventHandler.registerListener(Engine.EVENT_KEYUP, self);
 	}
-	function update() {
-		number value = .player.turningSpeed * Time.speedMultiplier;
+	function update( number deltaTime ) {
+		number value = .player.turningSpeed * Entity.speedMultiplier(deltaTime);
 		if( .turnLeft ) {
 			if( not .player.stalling ) {
 				.player.angle = Engine.addToAngle(.player.angle, -value);

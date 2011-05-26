@@ -9,6 +9,12 @@ uses 'Game/Menus.feh';
 uses 'Game/Entities.feh';
 uses 'Game/Controllers.feh';
 
+namespace Time {
+	number current;
+	number last;
+	number delta;
+}
+
 class modifies Game {
 	static final string NAME = 'Unknown';
 	static final string VERSION = '0.1';
@@ -51,7 +57,6 @@ class modifies Game {
 			Time.current = Engine.currentTime();
 			Time.last = Time.current;
 			Time.delta = 0;
-			Time.speedMultiplier = 0.0;
 			
 			Game.setState(.menuState());
 			
@@ -62,7 +67,6 @@ class modifies Game {
 				Time.current = Engine.currentTime();
 				Time.delta = Time.current - Time.last;
 				Time.last = Time.current;
-				Time.speedMultiplier = Time.delta / 10.0;
 				EventHandler.update();
 				MessageHandler.update();
 				.currentState.update();
