@@ -11,12 +11,10 @@ class TestState extends State {
 	object player;
 	object background;
 	function init() {
-		object playerController;
-		playerController = new KeyboardController();
-		playerController.keyLeft = Engine.KEY_LEFT;
-		playerController.keyRight = Engine.KEY_RIGHT;
 		.player = new Player();
-		.player.controller = playerController;
+		.player.controller = new KeyboardPlayerController(.player);
+		.player.controller.keyLeft = Engine.KEY_LEFT;
+		.player.controller.keyRight = Engine.KEY_RIGHT;
 		.player.speed = 1.8;
 		.player.turningSpeed = 1.0;
 		.player.x = 200;
@@ -61,7 +59,6 @@ class MultiplayerState extends State {
 			MessageHandler.registerListener(Network.MESSAGE_CONNECTION_REFUSED, self);
 			MessageHandler.registerListener(Network.MESSAGE_NEW_USER_ME, self);
 			MessageHandler.registerListener(Network.MESSAGE_NEW_USER, self);
-			MessageHandler.registerListener(Network.MESSAGE_ENTITY_UPDATE, self);
 			.listenersRegistered = true;
 		}
 		.background = Engine.loadImageResource('background.png');
@@ -111,9 +108,11 @@ class MultiplayerState extends State {
 		player.y = 100;
 
 		if( me ) {
-			player.controller = new KeyboardController();
+			player.controller = new KeyboardPlayerController(player);
 			player.controller.keyLeft = Engine.KEY_LEFT;
 			player.controller.keyRight = Engine.KEY_RIGHT;
+		} else {
+			player.controller = new NetworkPlayerController(player);
 		}
 		
 		.players["${message.id}"] = player;
@@ -148,16 +147,6 @@ class MultiplayerState extends State {
 			//Engine.printLine('onNewUser');
 			.createPlayer(message, false);
 		}
-	}
-	function onEntityUpdate( object message ) {
-		object player = .players["${message.id}"];
-		//Engine.printLine('onEntityUpdate');
-		player.x = message.x;
-		player.y = message.y;
-		player.speed = message.speed;
-		player.angle = message.angle;
-		player.spriteAngle = message.spriteAngle;
-		player.health = message.health;
 	}
 }
 

@@ -52,7 +52,7 @@ class Player {
 			}
 			
 			if( .controller ) {
-				.controller.update(self);
+				.controller.update();
 			}
 			
 			if( .stalling ) {

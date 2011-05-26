@@ -1,25 +1,27 @@
-class KeyboardController {
+class KeyboardPlayerController {
+	object player;
 	number keyLeft;
 	number keyRight;
 	boolean turnLeft;
 	boolean turnRight;
-	constructor {
+	constructor( object player ) {
+		.player = player;
 		EventHandler.registerListener(Engine.EVENT_KEYDOWN, self);
 		EventHandler.registerListener(Engine.EVENT_KEYUP, self);
 	}
-	function update( object entity ) {
-		number value = entity.turningSpeed * Time.speedMultiplier;
+	function update() {
+		number value = .player.turningSpeed * Time.speedMultiplier;
 		if( .turnLeft ) {
-			if( not entity.stalling ) {
-				entity.angle = Engine.addToAngle(entity.angle, -value);
+			if( not .player.stalling ) {
+				.player.angle = Engine.addToAngle(.player.angle, -value);
 			}
-			entity.spriteAngle = Engine.addToAngle(entity.spriteAngle, -value);
+			.player.spriteAngle = Engine.addToAngle(.player.spriteAngle, -value);
 		}
 		if( .turnRight ) {
-			if( not entity.stalling ) {
-				entity.angle = Engine.addToAngle(entity.angle, value);
+			if( not .player.stalling ) {
+				.player.angle = Engine.addToAngle(.player.angle, value);
 			}
-			entity.spriteAngle = Engine.addToAngle(entity.spriteAngle, value);
+			.player.spriteAngle = Engine.addToAngle(.player.spriteAngle, value);
 		}
 	}
 	function onKeyDown( object event ) {
@@ -38,6 +40,31 @@ class KeyboardController {
 			} else if( event.key == .keyRight ) {
 				.turnRight = false;
 			}
+		}
+	}
+}
+class NetworkPlayerController {
+	object player;
+	constructor( object player ) {
+		.player = player;
+		MessageHandler.registerListener(Network.MESSAGE_ENTITY_UPDATE, self);
+	}
+	function update() { }
+	function onEntityUpdate( object message ) {
+		//Engine.printLine('onEntityUpdate');
+		if( not .player ) {
+			Engine.printLine('Player is null');
+		}
+		if( not message ) {
+			Engine.printLine('Message is null');
+		}
+		if( .player.id == message.id ) {
+			.player.x = message.x;
+			.player.y = message.y;
+			.player.speed = message.speed;
+			.player.angle = message.angle;
+			.player.spriteAngle = message.spriteAngle;
+			.player.health = message.health;
 		}
 	}
 }
