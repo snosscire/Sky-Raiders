@@ -1,22 +1,24 @@
 class Entity {
 	static number dt;
 	static number sm;
-	static function speedMultiplier( number dt ) {
-		if( dt != .dt )
+	static function speedMultiplier( number& dt ) {
+		if( dt != .dt ) {
 			.sm = dt / 10.0;
+			.dt = dt;
+		}
 		return .sm;
 	}
-}
-
-class Player {
-	number id;
-	boolean me;
-	string name;
 	number x;
 	number y;
 	number speed;
-	number turningSpeed;
 	number angle;
+}
+
+class Player extends Entity {
+	number id;
+	boolean me;
+	string name;
+	number turningSpeed;
 	number spriteAngle;
 	object image;
 	object controller;
@@ -24,6 +26,7 @@ class Player {
 	boolean stalling;
 	array smokePuffs;
 	number nextSmokePuff;
+	object weapon;
 	
 	constructor {
 		.image = Engine.loadImageResource('ssh-askpass-gnome.png');
@@ -64,6 +67,8 @@ class Player {
 			if( .controller ) {
 				.controller.update(deltaTime);
 			}
+			
+			.weapon.update(deltaTime);
 			
 			if( .stalling ) {
 				.angle = 90.0;
@@ -139,11 +144,16 @@ class Player {
 			.smokePuffs.each() using ( smokePuff ) {
 				smokePuff.draw();
 			};
+			.weapon.draw();
 			//Engine.drawImage(.image, .x - (.image.width() / 2), .y - (.image.height() / 2));
 			rotatedImage = .image.rotate(-(.spriteAngle), 1.0, false);
 			Engine.drawImage(rotatedImage, .x - (rotatedImage.width() / 2), .y - (rotatedImage.height() / 2));
 			rotatedImage.unload();
 		}
+	}
+	
+	function shoot() {
+		.weapon.shoot(self);
 	}
 }
 

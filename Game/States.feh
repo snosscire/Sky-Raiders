@@ -15,6 +15,8 @@ class TestState extends State {
 		.player.controller = new KeyboardPlayerController(.player);
 		.player.controller.keyLeft = Engine.KEY_LEFT;
 		.player.controller.keyRight = Engine.KEY_RIGHT;
+		.player.controller.keyShoot = Engine.KEY_s;
+		.player.weapon = new MachineGun();
 		.player.speed = 1.8;
 		.player.turningSpeed = 1.0;
 		.player.x = 200;
@@ -31,11 +33,12 @@ class TestState extends State {
 		Engine.unloadImageResource(.background);
 	}
 	function update() {
-		number deltaTime = Time.delta;
-		while( deltaTime > 0 ) {
-			.player.update(deltaTime);
-			deltaTime -= 5;
-		}
+		//number deltaTime = Time.delta;
+		//while( deltaTime > 0 ) {
+		//	.player.update(deltaTime);
+		//	deltaTime -= 5;
+		//}
+		.player.update(Time.delta);
 	}
 	function draw() {
 		Engine.drawImage(.background, 0, 0);
@@ -78,8 +81,15 @@ class MultiplayerState extends State {
 	}
 	function update() {
 		if( .connected ) {
+			//number deltaTime;
 			.players.each() using ( player ) {
 				player.update(Time.delta);
+				//deltaTime = Time.delta;
+				//Engine.printLine("Player: ${player.id}, delta time: ${deltaTime}");
+				//while( deltaTime > 0 ) {
+				//	player.update(deltaTime);
+				//	deltaTime -= 5;
+				//}
 			};
 		}
 	}

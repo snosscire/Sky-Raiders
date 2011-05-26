@@ -2,8 +2,10 @@ class KeyboardPlayerController {
 	object player;
 	number keyLeft;
 	number keyRight;
+	number keyShoot;
 	boolean turnLeft;
 	boolean turnRight;
+	boolean shoot;
 	constructor( object player ) {
 		.player = player;
 		EventHandler.registerListener(Engine.EVENT_KEYDOWN, self);
@@ -23,6 +25,10 @@ class KeyboardPlayerController {
 			}
 			.player.spriteAngle = Engine.addToAngle(.player.spriteAngle, value);
 		}
+		if( .shoot ) {
+			.player.shoot();
+			.shoot = false;
+		}
 	}
 	function onKeyDown( object event ) {
 		if( not Console.active ) {
@@ -30,6 +36,8 @@ class KeyboardPlayerController {
 				.turnLeft = true;
 			} else if( event.key == .keyRight ) {
 				.turnRight = true;
+			} else if( event.key ==  .keyShoot ) {
+				.shoot = true;
 			}
 		}
 	}
@@ -39,7 +47,9 @@ class KeyboardPlayerController {
 				.turnLeft = false;
 			} else if( event.key == .keyRight ) {
 				.turnRight = false;
-			}
+			}/* else if( event.key == .keyShoot ) {
+				.shoot = false;
+			}*/
 		}
 	}
 }

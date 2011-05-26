@@ -8,6 +8,7 @@ uses 'Game/States.feh';
 uses 'Game/Menus.feh';
 uses 'Game/Entities.feh';
 uses 'Game/Controllers.feh';
+uses 'Game/Weapons.feh';
 
 namespace Time {
 	number current;
