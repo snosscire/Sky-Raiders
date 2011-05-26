@@ -8,6 +8,7 @@ class Game {
 				Console.printLine("------------------ connect ----------------------");
 				Console.printLine("connecting to ${host}:${port}...");
 				Console.flush();
+				Network.disconnect();
 				connected = Network.connect(host, port, 'Player');
 				if( connected ) {
 					Console.printLine('successfully connected.');
@@ -18,6 +19,12 @@ class Game {
 			} else {
 				Console.printLine('usage: connect [host] [port]');
 			}
+		});
+		Console.registerCommand('disconnect', closure( parameters ) {
+			Console.printLine('disconnecting from server...');
+			Console.flush();
+			Network.disconnect();
+			Console.printLine('done.');
 		});
 	}
 }

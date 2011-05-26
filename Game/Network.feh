@@ -1,5 +1,6 @@
 namespace modifies Network {
-	number MESSAGE_ENTITY_UPDATE = 255;
+	number MESSAGE_USER_DISCONNECTED_ME = 255;
+	number MESSAGE_ENTITY_UPDATE = 254;
 	
 	object client;
 	function currentClient() {
@@ -15,6 +16,7 @@ namespace modifies Network {
 		if( .client ) {
 			.client.destroy();
 			.client = null;
+			MessageHandler.invokeListeners(new Network.UserDisconnectedMeMessage());
 		}
 	}
 	
@@ -93,7 +95,7 @@ namespace modifies Network {
 		object message;
 		number type = Network.readByteFromData(data);
 		switch( type ) {
-			case Network.MESSAGE_ENTITY_UPDATE: message = Network.createEntityUpdateMessage(id, data); break;
+			case Network.MESSAGE_ENTITY_UPDATE:        message = Network.createEntityUpdateMessage(id, data); break;
 		}
 		return message;
 	}
@@ -122,33 +124,36 @@ namespace MessageHandler {
 			.listeners["$type"] = [];
 		.listeners["$type"][] = listener;
 	}
+	function invokeListeners( object message ) {
+		if( message.type == Network.MESSAGE_USER_DATA ) {
+			object dataMessage = Network.createDataMessage(message.id, message.data);
+			if( .listeners.keyExists("${dataMessage.type}") ) {
+				.listeners["${dataMessage.type}"].each() using ( listener ) {
+					switch( dataMessage.type ) {
+						case Network.MESSAGE_USER_DISCONNECTED_ME: listener.onUserDisconnectMe(dataMessage); break;
+						case Network.MESSAGE_ENTITY_UPDATE:        listener.onEntityUpdate(dataMessage); break;
+					}
+				};
+			}
+		} else {
+			if( .listeners.keyExists("${message.type}") ) {
+				.listeners["${message.type}"].each() using ( listener ) {
+					switch( message.type ) {
+						case Network.MESSAGE_NEW_USER:             listener.onNewUser(message); break;
+						case Network.MESSAGE_NEW_USER_ME:          listener.onNewUserMe(message); break;
+						case Network.MESSAGE_CONNECTION_REFUSED:   listener.onConnectionRefused(message); break;
+						case Network.MESSAGE_USER_DISCONNECTED_ME: listener.onUserDisconnectMe(message); break;
+					}
+				};
+			}
+		}
+	}
 	function update() {
 		object client = Network.currentClient();
 		if( client ) {
-			object message;
 			while( client.messagesWaiting() ) {
-				message = client.pullMessage();
-				if( message.type == Network.MESSAGE_USER_DATA ) {
-					object dataMessage = Network.createDataMessage(message.id, message.data);
-					if( .listeners.keyExists("${dataMessage.type}") ) {
-						.listeners["${dataMessage.type}"].each() using ( listener ) {
-							switch( dataMessage.type ) {
-								case Network.MESSAGE_ENTITY_UPDATE: listener.onEntityUpdate(dataMessage); break;
-							}
-						};
-					}
-				} else {
-					if( .listeners.keyExists("${message.type}") ) {
-						.listeners["${message.type}"].each() using ( listener ) {
-							switch( message.type ) {
-								case Network.MESSAGE_NEW_USER:           listener.onNewUser(message); break;
-								case Network.MESSAGE_NEW_USER_ME:        listener.onNewUserMe(message); break;
-								case Network.MESSAGE_CONNECTION_REFUSED: listener.onConnectionRefused(message); break;
-							}
-						};
-					}
-				}
-			} // while
-		} // if
-	} // yes, ugly indeed
+				.invokeListeners(client.pullMessage());
+			}
+		}
+	}
 }

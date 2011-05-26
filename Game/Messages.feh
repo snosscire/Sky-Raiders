@@ -1,4 +1,10 @@
 namespace modifies Network {
+	class UserDisconnectedMeMessage {
+		number type;
+		constructor {
+			.type = Network.MESSAGE_USER_DISCONNECTED_ME;
+		}
+	}
 	class EntityUpdateMessage {
 		number type;
 		number id;
