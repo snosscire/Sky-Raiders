@@ -1,3 +1,42 @@
+function DoObjectsCollide( object a, object b ) {
+	if( a.bottom <= b.top ) {
+		return false;
+	}
+	if( a.top >= b.bottom ) {
+		return false;
+	}
+	if( a.right <= b.left ) {
+		return false;
+	}
+	if( a.left >= b.right ) {
+		return false;
+	}
+	return true;
+}
+
+class Rectangle {
+	number x;
+	number y;
+	number width;
+	number height;
+	number left;
+	number right;
+	number top;
+	number bottom;
+	constructor( number x, number y, number width, number height ) {
+		.x = x;
+		.y = y;
+		.width = width;
+		.height = .height;
+	}
+	function recalculate() {
+		.left = .x;
+		.right = .x + .width;
+		.top = .y;
+		.bottom = .y + .height;
+	}
+}
+
 class Entity {
 	static number dt;
 	static number sm;
@@ -12,44 +51,72 @@ class Entity {
 	number y;
 	number speed;
 	number angle;
+	number left;
+	number right;
+	number top;
+	number bottom;
+	number halfWidth;
+	number halfHeight;
+	object sprite;
+	
+	constructor( string spriteName ) {
+		.sprite = Engine.loadImageResource(spriteName);
+		.halfWidth = .sprite.width() / 2;
+		.halfHeight = .sprite.width() / 2;
+	}
+	destructor {
+		if( .sprite ) {
+			Engine.unloadImageResource(.sprite);
+		}
+	}
+
+	function collide( object o  ) {
+		return false;
+	}
 }
 
 class Player extends Entity {
 	number id;
 	boolean me;
 	string name;
+	
+	number health;
 	number turningSpeed;
 	number spriteAngle;
-	object image;
-	object controller;
-	number health;
 	boolean stalling;
+	
+	object controller;
+	
+	object collisionRectangle;
+	
 	array smokePuffs;
 	number nextSmokePuff;
+	
+	object deathExplosion;
+	
 	object weapon;
+	boolean shotWeapon;
+	
+	number sendNextUpdate;
 	
 	constructor {
-		.image = Engine.loadImageResource('ssh-askpass-gnome.png');
+		self('ssh-askpass-gnome.png');
 		.health = 100.0;
 		.stalling = false;
-		for( number i = 0; i < 20; i++ )
+		for( number i = 0; i < 20; i++ ) {
 			.smokePuffs[] = new SmokePuff();
-	}
-	destructor {
-		Engine.unloadImageResource(.image);
+		}
+		.deathExplosion = new DeathExplosion();
 	}
 	
 	function update( number deltaTime ) {
+		for( number i = 0; i < .smokePuffs.size(); i++ ) {
+			.smokePuffs[i].update(deltaTime);
+		}
 		if( .health > 0.0 ) {
-			number halfWidth = .image.width() / 2;
-			number halfHeight = .image.height() / 2;
 			number radianAngle;
 			number gravityPercentage = 0.0;
 			number deltaSpeed;
-			number left;
-			number right;
-			number top;
-			number bottom;
 			
 			if( Time.current >= .nextSmokePuff ) {
 				for( number i = 0; i < .smokePuffs.size(); i++ ) {
@@ -60,15 +127,9 @@ class Player extends Entity {
 				}
 				.nextSmokePuff = Time.current + 100;
 			}
-			for( number i = 0; i < .smokePuffs.size(); i++ ) {
-				.smokePuffs[i].update(deltaTime);
-			}
 			
-			if( .controller ) {
-				.controller.update(deltaTime);
-			}
-			
-			.weapon.update(deltaTime);
+			.controller and .controller.update(deltaTime);
+			.weapon and .weapon.update(deltaTime);
 			
 			if( .stalling ) {
 				.angle = 90.0;
@@ -78,7 +139,7 @@ class Player extends Entity {
 				}
 			}
 
-			radianAngle = .angle * (Engine.PI / 180);
+			radianAngle = .angle * Engine.PI180;
 			deltaSpeed = (.speed * Entity.speedMultiplier(deltaTime));
 
 			if( /* down */ .angle < 180.0 and .angle > 0 ) {
@@ -104,18 +165,18 @@ class Player extends Entity {
 			.x += (deltaSpeed * Engine.cos(radianAngle));
 			.y += (deltaSpeed * Engine.sin(radianAngle));
 			
-			left = .x - halfWidth;
-			right = .x + halfWidth;
-			top = .y - halfHeight;
-			bottom = .y + halfHeight;
+			.left = .x - .halfWidth;
+			.right = .x + .halfWidth;
+			.top = .y - .halfHeight;
+			.bottom = .y + .halfHeight;
 			
-			if( left <= 0 ) {
+			if( .left <= 0 ) {
 				.angle = 180 - .angle;
 				.spriteAngle = .angle;
-			} else if( right >= Engine.screenWidth() ) {
+			} else if( .right >= Engine.screenWidth() ) {
 				.angle = 180 - .angle;
 				.spriteAngle = .angle;
-			} /*else if( top <= 0 ) {
+			} /*else if( .top <= 0 ) {
 				.angle = 360 - .angle;
 			}*/
 			
@@ -128,44 +189,79 @@ class Player extends Entity {
 				.speed = 0.0;
 			}
 			
-			if( bottom >= Engine.screenHeight() ) {
-				.health = 0.0;
+			if( .bottom >= Engine.screenHeight() ) {
+				.takeDamage(100);
 			}
 			
-			if( .me ) {
+			if( .me and (Time.current >= .sendNextUpdate or .shotWeapon) ) {
 				Network.sendEntityUpdate(self);
+				.sendNextUpdate = Time.current + 16;
 			}
+			
+			.shotWeapon = false;
+		}
+		.deathExplosion.update(deltaTime);
+		
+		if( .health <= 0.0 and Time.current >= .timeOfDeath + 2000 ) {
+			.x = 200;
+			.y = 100;
+			.angle = 0.0;
+			.spriteAngle = 0.0;
+			.health = 100.0;
 		}
 	}
 	
 	function draw() {
+		.smokePuffs.each() using ( smokePuff ) {
+			smokePuff.draw();
+		};
 		if( .health > 0.0 ) {
 			object rotatedImage;
-			.smokePuffs.each() using ( smokePuff ) {
-				smokePuff.draw();
-			};
-			.weapon.draw();
-			//Engine.drawImage(.image, .x - (.image.width() / 2), .y - (.image.height() / 2));
-			rotatedImage = .image.rotate(-(.spriteAngle), 1.0, false);
+			.weapon and .weapon.draw();
+			rotatedImage = .sprite.rotate(-(.spriteAngle), 1.0, false);
 			Engine.drawImage(rotatedImage, .x - (rotatedImage.width() / 2), .y - (rotatedImage.height() / 2));
 			rotatedImage.unload();
 		}
+		.deathExplosion.draw();
 	}
 	
 	function shoot() {
-		.weapon.shoot(self);
+		if( .health > 0.0 ) {
+			.weapon.shoot(self);
+			.shotWeapon = true;
+		}
+	}
+	function shotWeaponInLastUpdate() {
+		return .shotWeapon;
+	}
+	
+	function collisionObject() {
+		//return new Rectangle(.x - (.halfWidth), .y - (.halfHeight), .sprite.width(), .sprite.height());
+		return self;
+	}
+	function collide( object o ) {
+		if( .health > 0.0 ) {
+			return DoObjectsCollide(.collisionObject(), o.collisionObject());
+		}
+		return false;
+	}
+
+	number timeOfDeath;
+	function takeDamage( number damage ) {
+		.health -= damage;
+		if( .health <= 0.0 ) {
+			.timeOfDeath = Time.current;
+			.deathExplosion.init(.x, .y);
+		}
 	}
 }
 
-class SmokePuff {
-	object image;
-	number x;
-	number y;
+class SmokePuff extends Entity {
 	number zoom;
 	number lifeTime;
 	number currentLifeTime;
 	constructor {
-		.image = Engine.loadImageResource('smoke.png');
+		self('smoke.png');
 	}
 	function init( number x, number y ) {
 		.x = x;
@@ -182,7 +278,43 @@ class SmokePuff {
 	}
 	function draw() {
 		if( .currentLifeTime > 0 ) {
-			object zoomedImage = .image.rotate(0, .zoom, false);
+			object zoomedImage = .sprite.rotate(0, .zoom, false);
+			Engine.drawImage(zoomedImage, .x - (zoomedImage.width() / 2), .y - (zoomedImage.height() / 2));
+			zoomedImage.unload();
+		}
+	}
+}
+
+class DeathExplosion extends Entity {
+	object sprite;
+	number zoom;
+	number growTime;
+	number shrinkTime;
+	number currentGrowTime;
+	number currentShrinkTime;
+	constructor {
+		.sprite = Engine.loadImageResource(Global.ExplosionSprite);
+	}
+	function init( number x, number y ) {
+		.x = x;
+		.y = y;
+		.growTime = Global.ExplosionGrowTime;
+		.shrinkTime = Global.ExplosionShrinkTime;
+		.currentGrowTime = .growTime;
+		.currentShrinkTime = .shrinkTime;
+	}
+	function update( number deltaTime ) {
+		if( .currentGrowTime > 0 ) {
+			.zoom = ((.growTime - .currentGrowTime) + 0.0) / (.growTime + 0.0);
+			.currentGrowTime -= deltaTime;
+		} else if( .currentShrinkTime > 0 ) {
+			.zoom = (.currentShrinkTime + 0.0) / (.shrinkTime + 0.0);
+			.currentShrinkTime -= deltaTime;
+		}
+	}
+	function draw() {
+		if( .currentGrowTime > 0 or .currentShrinkTime > 0 ) {
+			object zoomedImage = .sprite.rotate(0, .zoom, false);
 			Engine.drawImage(zoomedImage, .x - (zoomedImage.width() / 2), .y - (zoomedImage.height() / 2));
 			zoomedImage.unload();
 		}

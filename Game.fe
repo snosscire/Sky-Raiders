@@ -1,3 +1,4 @@
+uses 'Global.feh';
 uses 'Engine/Engine.feh';
 uses 'Game/Events.feh';
 uses 'Game/Network.feh';
@@ -20,12 +21,14 @@ class modifies Game {
 	static final string NAME = 'Unknown';
 	static final string VERSION = '0.1';
 	static final number GRAVITY = 1.0;
-	
+
 	static boolean running;
 	
 	static object menuState;
 	static object multiplayerState;
 	static object currentState;
+	
+	static array players;
 	
 	static function run() {
 		if( not .running ) {
@@ -59,7 +62,12 @@ class modifies Game {
 			Time.last = Time.current;
 			Time.delta = 0;
 			
-			Game.setState(.menuState());
+			if( argv.size() == 2 and argv[1] == 'test' ) {
+				.multiplayerState().setConnectAutomatically('localhost', 8899);
+				Game.setState(.multiplayerState());
+			} else {
+				Game.setState(.menuState());
+			}
 			
 			.running = true;
 			while( .running and .currentState ) {

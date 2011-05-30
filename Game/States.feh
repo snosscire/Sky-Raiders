@@ -58,6 +58,15 @@ class MultiplayerState extends State {
 	boolean connected;
 	array players;
 	object background;
+	boolean connectAutomatically;
+	string host;
+	number port;
+	
+	function setConnectAutomatically( string host, number port ) {
+		.connectAutomatically = true;
+		.host = host;
+		.port = port;
+	}
 	
 	function init() {
 		if( not .listenersRegistered ) {
@@ -71,11 +80,23 @@ class MultiplayerState extends State {
 		.background = Engine.loadImageResource('background.png');
 		.connected = false;
 		.active = true;
+		if( .connectAutomatically ) {
+			Console.printLine("------------------ connect ----------------------");
+			Console.printLine("connecting to ${.host}:${.port}...");
+			Console.flush();
+			Network.disconnect();
+			if( Network.connect(.host, .port, 'Player') ) {
+				Console.printLine('successfully connected.');
+			} else {
+				Console.printLine('failed.');
+			}
+		}
 	}
 	function quit() {
 		.active = false;
 		.connected = false;
 		.players = [];
+		Game.players = [];
 		Network.disconnect();
 		Engine.unloadImageResource(.background);
 	}
@@ -125,11 +146,15 @@ class MultiplayerState extends State {
 			player.controller = new KeyboardPlayerController(player);
 			player.controller.keyLeft = Engine.KEY_LEFT;
 			player.controller.keyRight = Engine.KEY_RIGHT;
+			player.controller.keyShoot = Engine.KEY_s;
 		} else {
 			player.controller = new NetworkPlayerController(player);
 		}
 		
+		player.weapon = new MachineGun(player);
+		
 		.players["${message.id}"] = player;
+		Game.players[] = player;
 	}
 	
 	function onConnectionRefused( object message ) {

@@ -1,4 +1,8 @@
-class KeyboardPlayerController {
+class Controller {
+	function update( number deltaTime );
+}
+
+class KeyboardPlayerController extends Controller {
 	object player;
 	number keyLeft;
 	number keyRight;
@@ -53,28 +57,27 @@ class KeyboardPlayerController {
 		}
 	}
 }
-class NetworkPlayerController {
+class NetworkPlayerController extends Controller {
 	object player;
 	constructor( object player ) {
 		.player = player;
 		MessageHandler.registerListener(Network.MESSAGE_ENTITY_UPDATE, self);
 	}
-	function update() { }
+	function update( number deltaTime ) { }
 	function onEntityUpdate( object message ) {
 		//Engine.printLine('onEntityUpdate');
-		if( not .player ) {
-			Engine.printLine('Player is null');
-		}
-		if( not message ) {
-			Engine.printLine('Message is null');
-		}
-		if( .player.id == message.id ) {
-			.player.x = message.x;
-			.player.y = message.y;
+		if( message.id == .player.id ) {
+			if( .player.x > (message.x + 5) or .player.x < (message.x - 5) ) {
+				.player.x = message.x;
+			}
+			if( .player.y > (message.y + 5) or .player.y < (message.y - 5) ) {
+				.player.y = message.y;
+			}
 			.player.speed = message.speed;
 			.player.angle = message.angle;
 			.player.spriteAngle = message.spriteAngle;
 			.player.health = message.health;
+			message.shoot and .player.shoot();
 		}
 	}
 }

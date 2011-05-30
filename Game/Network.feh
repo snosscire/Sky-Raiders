@@ -87,6 +87,7 @@ namespace modifies Network {
 			Network.addDoubleToData(data, entity.angle);
 			Network.addDoubleToData(data, entity.spriteAngle);
 			Network.addByteToData(data, entity.health);
+			Network.addByteToData(data, (entity.shotWeaponInLastUpdate() ? 1 : 0));
 			.client.send(Network.EVERYONEELSE, Network.RELIABLE, data);
 		}
 	}
@@ -110,6 +111,7 @@ namespace modifies Network {
 		message.angle = Network.readDoubleFromData(data);
 		message.spriteAngle = Network.readDoubleFromData(data);
 		message.health = Network.readByteFromData(data);
+		message.shoot = Network.readByteFromData(data);
 		return message;
 	}
 }

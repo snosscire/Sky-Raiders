@@ -9,11 +9,20 @@ class Projectile extends Entity {
 
 class Bullet extends Projectile {
 	static final number SPEED = 4.0;
+	object origin;
 	object sprite;
+	object collisionRectangle;
 	constructor {
+		raise new Error('Bullet: Wrong constructor.');
+	}
+	constructor( object origin ) {
+		.origin = origin;
 		.active = false;
 		.speed = Bullet.SPEED;
 		.sprite = Engine.loadImageResource('bullet.png');
+		.collisionRectangle = new Rectangle();
+		.collisionRectangle.width = .sprite.width();
+		.collisionRectangle.height = .sprite.height();
 	}
 	function update( number deltaTime ) {
 		number radianAngle = .angle * (Engine.PI / 180);
@@ -22,22 +31,41 @@ class Bullet extends Projectile {
 		.y += (deltaSpeed * Engine.sin(radianAngle));
 		if( .x < 0 or .x > Engine.screenWidth() or .y < 0 or .y > Engine.screenHeight() )
 			.active = false;
+		if( .active ) {
+			Game.players.each() using ( player ) {
+				if( .origin.id != player.id and player.collide(self) ) {
+					.active = false;
+					player.takeDamage(Global.MachineGunBulletDamage);
+				}
+			};
+		}
 	}
 	function draw() {
 		object rotatedSprite = .sprite.rotate(-(.angle), 1.0, false);
 		Engine.drawImage(rotatedSprite, .x - (rotatedSprite.width() / 2), .y - (rotatedSprite.height() / 2));
 		rotatedSprite.unload();
 	}
+	function collisionObject() {
+		.collisionRectangle.x = .x;
+		.collisionRectangle.y = .y;
+		.collisionRectangle.recalculate();
+		return .collisionRectangle;
+	}
 }
 
 class MachineGun extends Weapon {
 	static final number BULLETS = 100;
+	object owner;
 	array bullets;
 	array activeBullets;
 	array inactiveBullets;
 	constructor {
+		raise new Error('MachineGun: Wrong constructor.');
+	}
+	constructor( object owner ) {
+		.owner = owner;
 		for( number i = 0; i < MachineGun.BULLETS; i++ ) {
-			.bullets[] = new Bullet();
+			.bullets[] = new Bullet(.owner);
 		}
 	}
 	function update( number deltaTime ) {
@@ -47,7 +75,8 @@ class MachineGun extends Weapon {
 				.inactiveBullets[] = i;
 		}
 		for( number i = 0; i < .inactiveBullets.size(); i++ ) {
-			.activeBullets.deleteAt(.inactiveBullets[i]);
+			if( .inactiveBullets[i] >= 0 and .inactiveBullets[i] < .activeBullets.size() )
+				.activeBullets.deleteAt(.inactiveBullets[i]);
 		}
 		.inactiveBullets = [];
 	}

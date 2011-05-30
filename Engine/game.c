@@ -18,6 +18,7 @@ int main(int argc, char *argv[] )
 	
 	if( ferite_init(0, NULL) )
 	{
+		ferite_set_script_argv(argc, argv);
 		script = ferite_script_compile("Game.fe");
 		if( ferite_has_compile_error(script) )
 		{

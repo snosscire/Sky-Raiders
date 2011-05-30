@@ -4,6 +4,7 @@ uses 'Engine/Font.feh';
 
 namespace modifies Engine {
 	number PI = 3.14159265;
+	number PI180 = 0.017453292;
 	string resourcePath;
 	string imageResourcePath;
 	array imageResources;

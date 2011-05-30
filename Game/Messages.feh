@@ -14,6 +14,7 @@ namespace modifies Network {
 		number angle;
 		number spriteAngle;
 		number health;
+		number shoot;
 	}
 }
 
