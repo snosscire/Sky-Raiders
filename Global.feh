@@ -1,0 +1,24 @@
+namespace Global {
+	number Gravity = 1.0;
+	string ExplosionSprite = "explosion.png";
+	number ExplosionGrowTime = 25;
+	number ExplosionShrinkTime = 125;
+	/*************************************************************************
+	 * Player
+	 *************************************************************************/
+	string PlayerSprite = "ssh-askpass-gnome.png";
+	number PlayerHealth = 100.0;
+	/* Smoke Puffs */
+	number PlayerSmokePuffOnScreenAmount = 20;
+	number PlayerSmokePuffAppearInterval = 100;
+	number PlayerSmokePuffLifeTime = 2000;
+	/*************************************************************************
+	* Weapons
+	**************************************************************************/
+	/* Machine Gun */
+	string MachineGunBulletSprite = "bullet.png";
+	number MachineGunBulletOnScreenAmount = 100;
+	number MachineGunBulletSpeed = 4.0;
+	number MachineGunBulletDamage = 50.0;
+}
+
