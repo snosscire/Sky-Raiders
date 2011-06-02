@@ -58,6 +58,7 @@ class Entity {
 	number halfWidth;
 	number halfHeight;
 	object sprite;
+	object rotatedSprite;
 	
 	constructor( string spriteName ) {
 		.sprite = Engine.loadImageResource(spriteName);
@@ -83,6 +84,7 @@ class Player extends Entity {
 	number health;
 	number turningSpeed;
 	number spriteAngle;
+	number lastSpriteAngle;
 	boolean stalling;
 	
 	object controller;
@@ -109,10 +111,11 @@ class Player extends Entity {
 		.deathExplosion = new DeathExplosion();
 	}
 	
-	function update( number deltaTime ) {
+	function update( number deltaTime, object currentMap ) {
 		for( number i = 0; i < Global.PlayerSmokePuffOnScreenAmount; i++ ) {
 			.smokePuffs[i].update(deltaTime);
 		}
+		.weapon and .weapon.update(deltaTime, currentMap);
 		if( .health > 0.0 ) {
 			number radianAngle;
 			number gravityPercentage = 0.0;
@@ -129,7 +132,6 @@ class Player extends Entity {
 			}
 			
 			.controller and .controller.update(deltaTime);
-			.weapon and .weapon.update(deltaTime);
 			
 			if( .stalling ) {
 				.angle = 90.0;
@@ -173,7 +175,7 @@ class Player extends Entity {
 			if( .left <= 0 ) {
 				.angle = 180 - .angle;
 				.spriteAngle = .angle;
-			} else if( .right >= Engine.screenWidth() ) {
+			} else if( .right >= currentMap.getWidth() ) {
 				.angle = 180 - .angle;
 				.spriteAngle = .angle;
 			} /*else if( .top <= 0 ) {
@@ -189,7 +191,7 @@ class Player extends Entity {
 				.speed = 0.0;
 			}
 			
-			if( .bottom >= Engine.screenHeight() ) {
+			if( .bottom >= currentMap.getHeight() ) {
 				.takeDamage(100);
 			}
 			
@@ -211,18 +213,44 @@ class Player extends Entity {
 		}
 	}
 	
-	function draw() {
-		.smokePuffs.each() using ( smokePuff ) {
-			smokePuff.draw();
-		};
-		if( .health > 0.0 ) {
-			object rotatedImage;
-			.weapon and .weapon.draw();
-			rotatedImage = .sprite.rotate(-(.spriteAngle), 1.0, false);
-			Engine.drawImage(rotatedImage, .x - (rotatedImage.width() / 2), .y - (rotatedImage.height() / 2));
-			rotatedImage.unload();
+	function draw( object playerCamera, object currentMap ) {
+		if( .me or (.x >= playerCamera.left and .x <= playerCamera.right and .y >= playerCamera.top and .y <= playerCamera.bottom) ) {
+			.smokePuffs.each() using ( smokePuff ) {
+				smokePuff.draw(playerCamera);
+			};
+			if( .health > 0.0 ) {
+				number x;
+				number y;
+				object rotatedSprite;
+				.weapon and .weapon.draw(playerCamera);
+				if( .me ) {
+					if( playerCamera.left == 0 or playerCamera.right == currentMap.getWidth() ) {
+						x = .x - playerCamera.left;
+					} else {
+						x = Engine.screenWidth() / 2;
+					}
+					if( playerCamera.top == 0 || playerCamera.bottom == currentMap.getHeight() ) {
+						y = .y - playerCamera.top;
+					} else {
+						y = Engine.screenHeight() / 2;
+					}
+				} else {
+					x = .x - playerCamera.left;
+					y = .y - playerCamera.top;
+				}
+				if( .rotatedSprite == null or .spriteAngle != .lastSpriteAngle ) {
+					.rotatedSprite and .rotatedSprite.unload();
+					.rotatedSprite = .sprite.rotate(-(.spriteAngle), 1.0, false);
+					.lastSpriteAngle = .spriteAngle;
+					Engine.drawImage(.rotatedSprite, x - (.rotatedSprite.width() / 2), y - (.rotatedSprite.height() / 2));
+					Engine.loadFont(Global.FontConsole, 10, 10, -2).drawText("${.id}", x, y);
+				} else {
+					Engine.drawImage(.rotatedSprite, x - (.rotatedSprite.width() / 2), y - (.rotatedSprite.height() / 2));
+					Engine.loadFont(Global.FontConsole, 10, 10, -2).drawText("${.id}", x, y);
+				}
+			}
+			.deathExplosion.draw(playerCamera);
 		}
-		.deathExplosion.draw();
 	}
 	
 	function shoot() {
@@ -276,10 +304,12 @@ class SmokePuff extends Entity {
 			.currentLifeTime -= deltaTime;
 		}
 	}
-	function draw() {
+	function draw( object playerCamera ) {
 		if( .currentLifeTime > 0 ) {
+			number x = .x - playerCamera.left;
+			number y = .y - playerCamera.top;
 			object zoomedImage = .sprite.rotate(0, .zoom, false);
-			Engine.drawImage(zoomedImage, .x - (zoomedImage.width() / 2), .y - (zoomedImage.height() / 2));
+			Engine.drawImage(zoomedImage, x - (zoomedImage.width() / 2), y - (zoomedImage.height() / 2));
 			zoomedImage.unload();
 		}
 	}
@@ -352,14 +382,16 @@ class DeathExplosion extends Entity {
 			.currentShrinkTime -= deltaTime;
 		}
 	}
-	function draw() {
+	function draw( object playerCamera ) {
 		if( .currentGrowTime > 0 or .currentShrinkTime > 0 ) {
+			number x = .x - playerCamera.left;
+			number y = .y - playerCamera.top;
 			object zoomedImage = .sprite.rotate(0, .zoom, false);
-			Engine.drawImage(zoomedImage, .x - (zoomedImage.width() / 2), .y - (zoomedImage.height() / 2));
+			Engine.drawImage(zoomedImage, x - (zoomedImage.width() / 2), y - (zoomedImage.height() / 2));
 			zoomedImage.unload();
 		}
 		for( number i = 0; i < Global.PlayerExplosionSmokePuffAmount; i++ ) {
-			.smokePuffs[i].draw();
+			.smokePuffs[i].draw(playerCamera);
 		}
 	}
 }

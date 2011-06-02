@@ -1,0 +1,52 @@
+class Camera {
+	number left;
+	number right;
+	number top;
+	number bottom;
+	function update( object currentMap, object player ) {
+		number screenWidth = Engine.screenWidth();
+		number screenHeight = Engine.screenHeight();
+		
+		.left = player.x - (screenWidth / 2);
+		.top = player.y - (screenHeight / 2);
+		
+		if( .left < 0 ) {
+			.left = 0;
+		} else if( .left > (currentMap.getWidth() - screenWidth) ) {
+			.left = currentMap.getWidth() - screenWidth;
+		}
+		
+		if( .top < 0 ) {
+			.top = 0;
+		} else if( .top > (currentMap.getHeight() - screenHeight) ) {
+			.top = currentMap.getHeight() - screenHeight;
+		}
+		
+		.right = .left + screenWidth;
+		.bottom = .top + screenHeight;
+	}
+}
+
+class Map {
+	object background;
+	function unload() {
+		Engine.unloadImageResource(.background);
+	}
+	function getWidth() {
+		return .background.width();
+	}
+	function getHeight() {
+		return .background.height();
+	}
+	function drawBackground( object playerCamera ) {
+		number w = Engine.screenWidth();
+		number h = Engine.screenHeight();
+		number x = playerCamera.left;
+		number y = playerCamera.top;
+		Engine.drawImage(.background, 0 /* screen x */, 0 /* screen y */, x, y, w, h);
+	}
+	function drawForeground( object playerCamera ) {
+		
+	}
+}
+

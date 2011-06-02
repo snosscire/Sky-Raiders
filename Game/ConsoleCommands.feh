@@ -26,6 +26,14 @@ class Game {
 			Network.disconnect();
 			Console.printLine('done.');
 		});
+		Console.registerCommand('msg_disable', closure( parameters ) {
+			MessageHandler.active = false;
+			Console.printLine("messagehandler status... ${MessageHandler.active}");
+		});
+		Console.registerCommand('msg_enable', closure( parameters ) {
+			MessageHandler.active = true;
+			Console.printLine("messagehandler status... ${MessageHandler.active}");
+		});
 	}
 }
 

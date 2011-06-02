@@ -8,9 +8,15 @@ class State {
 }
 
 class TestState extends State {
+	object map;
+	object playerCamera;
 	object player;
-	object background;
 	function init() {
+		.map = new Map();
+		.map.background = Engine.loadImageResource('enviorment/sky_test2.bmp');
+		
+		.playerCamera = new Camera();
+		
 		.player = new Player();
 		.player.controller = new KeyboardPlayerController(.player);
 		.player.controller.keyLeft = Engine.KEY_LEFT;
@@ -22,8 +28,9 @@ class TestState extends State {
 		.player.turningSpeed = Global.PlayerTurningSpeed;
 		.player.x = Global.PlayerStartX;
 		.player.y = Global.PlayerStartY;
-		.background = Engine.loadImageResource('background.png');
+		
 		.active = true;
+		
 		if( not .listenersRegistered ) {
 			EventHandler.registerListener(Engine.EVENT_KEYDOWN, self);
 		}
@@ -31,7 +38,8 @@ class TestState extends State {
 	function quit() {
 		.active = false;
 		.player = null;
-		Engine.unloadImageResource(.background);
+		.map.unload();
+		.map = null;
 	}
 	function update() {
 		//number deltaTime = Time.delta;
@@ -39,11 +47,12 @@ class TestState extends State {
 		//	.player.update(deltaTime);
 		//	deltaTime -= 5;
 		//}
-		.player.update(Time.delta);
+		.player.update(Time.delta, .map);
+		.playerCamera.update(.map, .player);
 	}
 	function draw() {
-		Engine.drawImage(.background, 0, 0);
-		.player.draw();
+		.map.drawBackground(.playerCamera);
+		.player.draw(.playerCamera, .map);
 	}
 	function onKeyDown( object event ) {
 		if( .active and (not Console.active) ) {
@@ -57,8 +66,10 @@ class TestState extends State {
 class MultiplayerState extends State {
 	object client;
 	boolean connected;
+	object currentMap;
+	object playerCamera;
+	object localPlayer;
 	array players;
-	object background;
 	boolean connectAutomatically;
 	string host;
 	number port;
@@ -77,7 +88,9 @@ class MultiplayerState extends State {
 			MessageHandler.registerListener(Network.MESSAGE_NEW_PLAYER, self);
 			.listenersRegistered = true;
 		}
-		.background = Engine.loadImageResource('background.png');
+		.currentMap = new Map();
+		.currentMap.background = Engine.loadImageResource('enviorment/sky_test2.bmp');
+		.playerCamera = new Camera();
 		.connected = false;
 		.active = true;
 		if( .connectAutomatically ) {
@@ -95,16 +108,20 @@ class MultiplayerState extends State {
 	function quit() {
 		.active = false;
 		.connected = false;
+		.currentMap and .currentMap.unload();
+		.currentMap = null;
+		.playerCamera = null;
+		.localPlayer = null;
 		.players = [];
 		Game.players = [];
 		Network.disconnect();
-		Engine.unloadImageResource(.background);
 	}
 	function update() {
 		if( .connected ) {
 			//number deltaTime;
 			.players.each() using ( player ) {
-				player.update(Time.delta);
+				//player.me and Console.printLine('updating me...');
+				player.update(Time.delta, .currentMap);
 				//deltaTime = Time.delta;
 				//Engine.printLine("Player: ${player.id}, delta time: ${deltaTime}");
 				//while( deltaTime > 0 ) {
@@ -112,14 +129,17 @@ class MultiplayerState extends State {
 				//	deltaTime -= 5;
 				//}
 			};
+			//.localPlayer.update(Time.delta, .currentMap);
+			.playerCamera.update(.currentMap, .localPlayer);
 		}
 	}
 	function draw() {
 		if( .connected ) {
-			Engine.drawImage(.background, 0, 0);
+			.currentMap.drawBackground(.playerCamera);
 			.players.each() using ( player ) {
-				player.draw();
+				player.draw(.playerCamera, .currentMap);
 			};
+			//.localPlayer.draw(.playerCamera, .currentMap);
 		}
 	}
 	
@@ -133,27 +153,33 @@ class MultiplayerState extends State {
 	
 	function createPlayer( object message, boolean me ) {
 		object player;
+		
+		Console.printLine("creating player... ${me} (${message.id})");
+		
 		player = new Player();
 		player.id = message.id;
 		//player.name = message.name;
 		player.me = me;
+		player.health = Global.PlayerStartHealth;
 		player.speed = Global.PlayerSpeed;
 		player.turningSpeed = Global.PlayerTurningSpeed;
-		player.x = Global.PlayerStartX;
-		player.y = Global.PlayerStartY;
-
+		player.x = message.x;
+		player.y = message.y;
+		
 		if( me ) {
+			//Console.printLine('using keyboard controller.');
 			player.controller = new KeyboardPlayerController(player);
 			player.controller.keyLeft = Engine.KEY_LEFT;
 			player.controller.keyRight = Engine.KEY_RIGHT;
 			player.controller.keyShoot = Engine.KEY_SPACE;
+			.localPlayer = player;
 		} else {
 			player.controller = new NetworkPlayerController(player);
 		}
 		
 		player.weapon = new MachineGun(player);
 		
-		.players["${message.id}"] = player;
+		.players["Player/${player.id}"] = player;
 		Game.players[] = player;
 	}
 	

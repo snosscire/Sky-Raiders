@@ -1,7 +1,7 @@
 namespace modifies Network {
-	number MESSAGE_DISCONNECT_ME = 255;
-	number MESSAGE_PLAYER_UPDATE = 254;
-	number MESSAGE_NEW_PLAYER    = 253;
+	number MESSAGE_DISCONNECT_ME = 155;
+	number MESSAGE_PLAYER_UPDATE = 154;
+	number MESSAGE_NEW_PLAYER    = 153;
 	
 	object client;
 	function currentClient() {
@@ -94,6 +94,7 @@ namespace modifies Network {
 }
 
 namespace MessageHandler {
+	boolean active = true;
 	array listeners;
 	function unregisterAllListeners() {
 		.listeners = [];
@@ -127,11 +128,13 @@ namespace MessageHandler {
 		}
 	}
 	function update() {
-		object client = Network.currentClient();
-		if( client ) {
-			object message;
-			while( message = client.service(0) ) {
-				.invokeListeners(message);
+		if( .active ) {
+			object client = Network.currentClient();
+			if( client and .active ) {
+				object message;
+				while( message = client.service(0) ) {
+					.invokeListeners(message);
+				}
 			}
 		}
 	}

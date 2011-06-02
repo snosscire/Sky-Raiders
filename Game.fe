@@ -7,6 +7,7 @@ uses 'Game/Console.feh';
 uses 'Game/ConsoleCommands.feh';
 uses 'Game/States.feh';
 uses 'Game/Menus.feh';
+uses 'Game/Map.feh';
 uses 'Game/Entities.feh';
 uses 'Game/Controllers.feh';
 uses 'Game/Weapons.feh';
@@ -32,14 +33,18 @@ class modifies Game {
 			object playerController;
 			object background;
 			
-			number frames = 0;
-			number fps = 0;
+			array frameTimes = [];
+			number frameTimesIndex;
+			number frameCount;
+			number framesPerSecond;
+			number count;
+			
 			object font;
 			
 			object this = new Game();
 			EventHandler.registerListener(Engine.EVENT_QUIT, this);
 			
-			Engine.setScreen(640, 480, false);
+			Engine.setScreen(Global.DefaultScreenWidth, Global.DefaultScreenHeight, Global.DefaultFullScreenState);
 			//Engine.setScreen(1280, 800, true);
 			//Engine.setScreen(640, 480, true);
 			
@@ -66,19 +71,44 @@ class modifies Game {
 			}
 			
 			.running = true;
+			
+			frameTimes = [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ];
+		    frameCount = 0;
+		    framesPerSecond = 0;
+		    
+			Time.last = Engine.currentTime();
+			
 			while( .running and .currentState ) {
-				frames++;
-				fps = (frames / (Engine.currentTime() / 1000.0)).round();
 				Time.current = Engine.currentTime();
 				Time.delta = Time.current - Time.last;
 				Time.last = Time.current;
+				
+				// fps
+				frameTimesIndex = frameCount % 10;
+				frameTimes[frameTimesIndex] = Time.delta;
+
+				frameCount++;
+				if( frameCount < 10 ) {
+					count = frameCount;
+				} else {
+					count = 10;
+				}
+				framesPerSecond = 0;
+				for( number i = 0; i < count; i++ ) {
+					framesPerSecond += frameTimes[i];
+				}
+				framesPerSecond /= count;
+				framesPerSecond = (framesPerSecond > 0 ? (1000.0 / framesPerSecond).round() : 0);
+				
 				EventHandler.update();
 				MessageHandler.update();
 				.currentState.update();
+				
 				Engine.clearScreen();
 				.currentState.draw();
 				Console.draw();
-				font.drawText("$fps", Engine.screenWidth() - font.textWidth("$fps") - 5, 5);
+				
+				font.drawText("$framesPerSecond", Engine.screenWidth() - font.textWidth("$framesPerSecond") - 5, 5);
 				Engine.updateScreen();
 			}
 			
