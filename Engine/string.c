@@ -1,5 +1,4 @@
-#include "string.h"
-#include <errno.h>
+#include "include.h"
 
 FE_NATIVE_FUNCTION( ferite_string_length )
 {

@@ -72,10 +72,9 @@ class MultiplayerState extends State {
 	function init() {
 		if( not .listenersRegistered ) {
 			EventHandler.registerListener(Engine.EVENT_KEYDOWN, self);
-			MessageHandler.registerListener(Network.MESSAGE_USER_DISCONNECTED_ME, self);
-			MessageHandler.registerListener(Network.MESSAGE_CONNECTION_REFUSED, self);
-			MessageHandler.registerListener(Network.MESSAGE_NEW_USER_ME, self);
-			MessageHandler.registerListener(Network.MESSAGE_NEW_USER, self);
+			MessageHandler.registerListener(Network.MESSAGE_DISCONNECT_ME, self);
+			MessageHandler.registerListener(Network.MESSAGE_CONNECT, self);
+			MessageHandler.registerListener(Network.MESSAGE_NEW_PLAYER, self);
 			.listenersRegistered = true;
 		}
 		.background = Engine.loadImageResource('background.png');
@@ -87,7 +86,7 @@ class MultiplayerState extends State {
 			Console.flush();
 			Network.disconnect();
 			if( Network.connect(.host, .port, 'Player') ) {
-				Console.printLine('successfully connected.');
+				Console.printLine('waiting for response....');
 			} else {
 				Console.printLine('failed.');
 			}
@@ -136,7 +135,7 @@ class MultiplayerState extends State {
 		object player;
 		player = new Player();
 		player.id = message.id;
-		player.name = message.name;
+		//player.name = message.name;
 		player.me = me;
 		player.speed = 1.8;
 		player.turningSpeed = 1.0;
@@ -147,7 +146,7 @@ class MultiplayerState extends State {
 			player.controller = new KeyboardPlayerController(player);
 			player.controller.keyLeft = Engine.KEY_LEFT;
 			player.controller.keyRight = Engine.KEY_RIGHT;
-			player.controller.keyShoot = Engine.KEY_s;
+			player.controller.keyShoot = Engine.KEY_SPACE;
 		} else {
 			player.controller = new NetworkPlayerController(player);
 		}
@@ -158,34 +157,23 @@ class MultiplayerState extends State {
 		Game.players[] = player;
 	}
 	
-	function onConnectionRefused( object message ) {
-		string output = 'connection refused... ';
-		switch( message.reason ) {
-			case Network.CONNECTION_REFUSED_VERSION_MISMATCH:          output += 'version mismatch.'; break;
-			case Network.CONNECTION_REFUSED_SERVER_FULL:               output += 'server full.'; break;
-			case Network.CONNECTION_REFUSED_SERVER_CLOSED:             output += 'server closed.'; break;
-			case Network.CONNECTION_REFUSED_PASSWORD_MISMATCH:         output += 'password mismatch.'; break;
-			case Network.CONNECTION_REFUSED_NAME_NOT_UNIQUE:           output += 'name is not unique.'; break;
-			case Network.CONNECTION_REFUSED_PROTECTION_KEY_NOT_UNIQUE: output += 'protection key is not unique'; break;
+	function onConnect( object message ) {
+		if( .active ) {
 		}
-		Console.printLine(output);
 	}
-	function onUserDisconnectMe( object message ) {
+	function onDisconnectMe( object message ) {
 		if( .active ) {
 			Game.setState(Game.menuState());
 		}
 	}
-	function onNewUserMe( object message ) {
+	function onNewPlayer( object message ) {
 		if( .active ) {
-			//Engine.printLine('onNewUserMe');
-			.createPlayer(message, true);
-			.connected = true;
-		}
-	}
-	function onNewUser( object message ) {
-		if( .active ) {
-			//Engine.printLine('onNewUser');
-			.createPlayer(message, false);
+			boolean me = false;
+			if( not .connected ) {
+				me = true;
+				.connected = true;
+			}
+			.createPlayer(message, me);
 		}
 	}
 }

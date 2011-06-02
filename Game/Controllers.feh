@@ -64,10 +64,10 @@ class NetworkPlayerController extends Controller {
 	object player;
 	constructor( object player ) {
 		.player = player;
-		MessageHandler.registerListener(Network.MESSAGE_ENTITY_UPDATE, self);
+		MessageHandler.registerListener(Network.MESSAGE_PLAYER_UPDATE, self);
 	}
 	function update( number deltaTime ) { }
-	function onEntityUpdate( object message ) {
+	function onPlayerUpdate( object message ) {
 		//Engine.printLine('onEntityUpdate');
 		if( message.id == .player.id ) {
 			if( .player.x > (message.x + 5) or .player.x < (message.x - 5) ) {

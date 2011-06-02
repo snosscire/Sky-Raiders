@@ -194,7 +194,7 @@ class Player extends Entity {
 			}
 			
 			if( .me and (Time.current >= .sendNextUpdate or .shotWeapon) ) {
-				Network.sendEntityUpdate(self);
+				Network.send(Network.PlayerUpdateMessage.fromPlayer(self));
 				.sendNextUpdate = Time.current + 16;
 			}
 			

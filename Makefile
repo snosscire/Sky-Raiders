@@ -4,7 +4,7 @@ all:
 		`sdl-config --cflags --libs` \
 		-lSDL_image \
 		-lSDL_gfx \
-		-lgrapple \
+		-lenet \
 		Engine/game.c \
 		Engine/array.c \
 		Engine/string.c \
@@ -12,13 +12,13 @@ all:
 		Engine/engine.c \
 		Engine/key.c \
 		Engine/image.c \
-		Engine/network.c
+		Engine/network_enet.c
 	gcc -g -Wall -o server \
 		`ferite-config --cflags --libs` \
 		`sdl-config --cflags --libs` \
 		-lSDL_image \
 		-lSDL_gfx \
-		-lgrapple \
+		-lenet \
 		Engine/server.c \
 		Engine/array.c \
 		Engine/string.c \
@@ -26,4 +26,4 @@ all:
 		Engine/engine.c \
 		Engine/key.c \
 		Engine/image.c \
-		Engine/network.c
+		Engine/network_enet.c

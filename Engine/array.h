@@ -1,8 +1,6 @@
 #ifndef ARRAY_H
 #define ARRAY_H
 
-#include <ferite.h>
-
-void ferite_array_init ( FeriteScript *script );
+GAME_API void ferite_array_init ( FeriteScript *script );
 
 #endif /* ARRAY_H */

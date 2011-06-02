@@ -11,7 +11,7 @@ class Game {
 				Network.disconnect();
 				connected = Network.connect(host, port, 'Player');
 				if( connected ) {
-					Console.printLine('successfully connected.');
+					Console.printLine('waiting for response...');
 					Game.setState(Game.multiplayerState());
 				} else {
 					Console.printLine('failed.');
