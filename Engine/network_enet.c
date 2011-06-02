@@ -147,21 +147,6 @@ FE_NATIVE_FUNCTION( game_engine_network_server_send )
 	
 	packet = enet_packet_create(data->data, data->length, ENET_PACKET_FLAG_NO_ALLOCATE | ENET_PACKET_FLAG_RELIABLE);
 	
-	/*
-	printf("Test (1).\n");
-	if( !peer ) {
-		printf("Oh no (1).\n");
-	}
-	printf("Test (2).\n");
-	if( !VAO(peer) ) {
-		printf("Oh no (2).\n");
-	}
-	printf("Test (3).\n");
-	if( VAO(peer)->odata ) {
-		printf("Oh no (3).\n");
-	}
-	*/
-	
 	enet_peer_send((ENetPeer *)peer->odata, 0, packet);
 	enet_host_flush(server);
 	
@@ -182,15 +167,11 @@ FE_NATIVE_FUNCTION( game_engine_network_client_start )
 	address.port = port;
 	
 	host = enet_host_create(NULL, 1, 0, 0);
-	printf("Creating host.\n");
 	if( host )
 	{
-		ENetPeer *peer = NULL;
-		peer = enet_host_connect(host, &address, 2);
-		printf("Connecting to host.\n");
+		ENetPeer *peer = enet_host_connect(host, &address, 2);
 		if( peer )
 		{
-			printf("Everything good.\n");
 			Client *client = (Client *)malloc(sizeof(Client));
 			FeriteVariable *client_variable = NULL;
 			client->host = host;
