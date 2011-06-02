@@ -15,6 +15,12 @@
 
 #include <ferite.h>
 
+/*#define GAME_API __declspec(dllexport)*/
+/*#define FERITE_API __declspec(dllimport)*/
+#define GAME_API __declspec(dllexport)
+/*#define GAME_API*/
+
+
 #include "array.h"
 #include "string.h"
 #include "number.h"

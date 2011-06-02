@@ -182,14 +182,15 @@ FE_NATIVE_FUNCTION( game_engine_network_client_start )
 	address.port = port;
 	
 	host = enet_host_create(NULL, 1, 0, 0);
-	
+	printf("Creating host.\n");
 	if( host )
 	{
 		ENetPeer *peer = NULL;
 		peer = enet_host_connect(host, &address, 2);
-		
+		printf("Connecting to host.\n");
 		if( peer )
 		{
+			printf("Everything good.\n");
 			Client *client = (Client *)malloc(sizeof(Client));
 			FeriteVariable *client_variable = NULL;
 			client->host = host;

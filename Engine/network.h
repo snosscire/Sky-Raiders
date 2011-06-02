@@ -3,6 +3,6 @@
 
 /*#include <ferite.h>*/
 
-void game_engine_network_init ( FeriteScript *script );
+GAME_API void game_engine_network_init ( FeriteScript *script );
 
 #endif /* KEY_H */

@@ -1,12 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <ferite.h>
-#include <SDL/SDL.h>
-
-#include "array.h"
-#include "string.h"
-#include "number.h"
-#include "engine.h"
+#include "include.h"
 
 int main(int argc, char *argv[] )
 {
@@ -15,6 +7,7 @@ int main(int argc, char *argv[] )
 	
 	SDL_Init(SDL_INIT_VIDEO);
 	//SDL_EnableUNICODE(1);
+	enet_initialize();
 	
 	if( ferite_init(0, NULL) )
 	{
@@ -46,6 +39,7 @@ int main(int argc, char *argv[] )
 		ferite_deinit();
 	}
 	
+	enet_deinitialize();
 	SDL_Quit();
 	
 	return 0;
