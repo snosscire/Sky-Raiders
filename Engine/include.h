@@ -15,7 +15,11 @@
 
 #include <ferite.h>
 
+#ifdef WIN32
 #define GAME_API __declspec(dllexport)
+#else
+#define GAME_API extern
+#endif
 
 #include "array.h"
 #include "string.h"
