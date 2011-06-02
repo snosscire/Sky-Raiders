@@ -55,7 +55,7 @@ function HandleData( object server, object message ) {
 	Engine.printLine('User sent message.');
 }
 
-object server = Network.Server.start(8898);
+object server = Network.Server.start(8899);
 object message;
 
 while( true ) {
