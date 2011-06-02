@@ -7,6 +7,7 @@ class KeyboardPlayerController extends Controller {
 	number keyLeft;
 	number keyRight;
 	number keyShoot;
+	number keyKill;
 	boolean turnLeft;
 	boolean turnRight;
 	boolean shoot;
@@ -40,8 +41,10 @@ class KeyboardPlayerController extends Controller {
 				.turnLeft = true;
 			} else if( event.key == .keyRight ) {
 				.turnRight = true;
-			} else if( event.key ==  .keyShoot ) {
+			} else if( event.key == .keyShoot ) {
 				.shoot = true;
+			} else if( event.key == .keyKill ) {
+				.player.takeDamage(1000);
 			}
 		}
 	}

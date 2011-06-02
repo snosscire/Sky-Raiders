@@ -285,6 +285,31 @@ class SmokePuff extends Entity {
 	}
 }
 
+class ExplosionSmokePuff extends SmokePuff {
+	constructor {
+		self('ExplosionSmokePuff.png');
+	}
+	function init( number x, number y ) {
+		.x = x;
+		.y = y;
+		.zoom = 1.0;
+		.lifeTime = 1500;
+		.currentLifeTime = .lifeTime;
+		.speed = (Number.random(1, 5) + 0.0) / 10;
+		.angle = Number.random(0, 360);
+	}
+	function update( number deltaTime ) {
+		if( .currentLifeTime > 0 ) {
+			number radianAngle = .angle * Engine.PI180;
+			number deltaSpeed = (.speed * Entity.speedMultiplier(deltaTime));
+			.x += (deltaSpeed * Engine.cos(radianAngle));
+			.y += (deltaSpeed * Engine.sin(radianAngle));
+			.zoom = (.currentLifeTime + 0.0) / (.lifeTime + 0.0);
+			.currentLifeTime -= deltaTime;
+		}
+	}
+}
+
 class DeathExplosion extends Entity {
 	object sprite;
 	number zoom;
@@ -292,8 +317,12 @@ class DeathExplosion extends Entity {
 	number shrinkTime;
 	number currentGrowTime;
 	number currentShrinkTime;
+	array smokePuffs;
 	constructor {
 		.sprite = Engine.loadImageResource(Global.ExplosionSprite);
+		for( number i = 0; i < 10; i++ ) {
+			.smokePuffs[] = new ExplosionSmokePuff();
+		}
 	}
 	function init( number x, number y ) {
 		.x = x;
@@ -302,8 +331,15 @@ class DeathExplosion extends Entity {
 		.shrinkTime = Global.ExplosionShrinkTime;
 		.currentGrowTime = .growTime;
 		.currentShrinkTime = .shrinkTime;
+		for( number i = 0; i < 10; i++ ) {
+			.smokePuffs[i].init(x, y);
+		}
+		
 	}
 	function update( number deltaTime ) {
+		for( number i = 0; i < 10; i++ ) {
+			.smokePuffs[i].update(deltaTime);
+		}
 		if( .currentGrowTime > 0 ) {
 			.zoom = ((.growTime - .currentGrowTime) + 0.0) / (.growTime + 0.0);
 			.currentGrowTime -= deltaTime;
@@ -317,6 +353,9 @@ class DeathExplosion extends Entity {
 			object zoomedImage = .sprite.rotate(0, .zoom, false);
 			Engine.drawImage(zoomedImage, .x - (zoomedImage.width() / 2), .y - (zoomedImage.height() / 2));
 			zoomedImage.unload();
+		}
+		for( number i = 0; i < 10; i++ ) {
+			.smokePuffs[i].draw();
 		}
 	}
 }

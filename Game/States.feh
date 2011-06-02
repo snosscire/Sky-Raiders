@@ -15,8 +15,9 @@ class TestState extends State {
 		.player.controller = new KeyboardPlayerController(.player);
 		.player.controller.keyLeft = Engine.KEY_LEFT;
 		.player.controller.keyRight = Engine.KEY_RIGHT;
-		.player.controller.keyShoot = Engine.KEY_s;
-		.player.weapon = new MachineGun();
+		.player.controller.keyShoot = Engine.KEY_SPACE;
+		.player.controller.keyKill = Engine.KEY_k;
+		.player.weapon = new MachineGun(.player);
 		.player.speed = 1.8;
 		.player.turningSpeed = 1.0;
 		.player.x = 200;
