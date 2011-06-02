@@ -1,3 +1,4 @@
+uses 'Global.feh';
 uses 'Game/Array.feh';
 uses 'Game/String.feh';
 uses 'Game/Network_ENet.feh';
@@ -87,18 +88,28 @@ function HandleData( object server, object message ) {
 	}
 }
 
-object server = Network.Server.start(8899);
-object message;
+number port = Global.ServerDefaultPort;
+object server = Network.Server.start(port);
 
-while( true ) {
-	while( message = server.service(1000) ) {
-		switch( message.type ) {
-			case Network.MESSAGE_CONNECT:    HandleConnect(server, message); break;
-			case Network.MESSAGE_DISCONNECT: HandleDisconnect(server, message); break;
-			case Network.MESSAGE_DATA:       HandleData(server, message); break;
+Engine.printLine("Trying to start server at port ${port}...");
+
+if( server ) {
+	object message;
+	
+	Engine.printLine("Server started.");
+	
+	while( true ) {
+		while( message = server.service(1000) ) {
+			switch( message.type ) {
+				case Network.MESSAGE_CONNECT:    HandleConnect(server, message); break;
+				case Network.MESSAGE_DISCONNECT: HandleDisconnect(server, message); break;
+				case Network.MESSAGE_DATA:       HandleData(server, message); break;
+			}
 		}
 	}
-}
 
-server.destroy();
+	server.destroy();
+} else {
+	Engine.printLine("Error.");
+}
 

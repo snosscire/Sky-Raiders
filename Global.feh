@@ -38,5 +38,9 @@ namespace Global {
 	number MachineGunBulletOnScreenAmount = 100;
 	number MachineGunBulletSpeed = 4.0;
 	number MachineGunBulletDamage = 50.0;
+	/*************************************************************************
+	 * Server
+	 *************************************************************************/
+	number ServerDefaultPort = 8899;
 }
 

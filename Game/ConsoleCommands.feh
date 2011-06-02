@@ -3,7 +3,7 @@ class Game {
 		Console.registerCommand('connect', closure( parameters ) {
 			if( parameters.size() <= 2 ) {
 				string host = (parameters.size() >= 1 ? parameters[0] : 'localhost');
-				number port = (parameters.size() == 2 ? parameters[1].toNumber() : 8899);
+				number port = (parameters.size() == 2 ? parameters[1].toNumber() : Global.ServerDefaultPort);
 				boolean connected = false;
 				Console.printLine("------------------ connect ----------------------");
 				Console.printLine("connecting to ${host}:${port}...");
