@@ -10,14 +10,14 @@ FE_NATIVE_FUNCTION( game_engine_network_server_start )
 	
 	ferite_get_parameters(params, 4, &name, &version, &port, &session);
 	
-	grapple_server *server = fmalloc(sizeof(grapple_server));
+	grapple_server *server = malloc(sizeof(grapple_server));
 	
 	(*server) = grapple_server_init(name->data, version->data);
-	//grapple_server_ip_set(server, "127.0.0.1");
+	grapple_server_ip_set(*server, "192.168.0.15");
 	grapple_server_port_set(*server, port);
 	grapple_server_protocol_set(*server, GRAPPLE_PROTOCOL_TCP);
 	grapple_server_session_set(*server, session->data);
-	//grapple_server_maxusers_set(server, 8);
+	grapple_server_maxusers_set(*server, 8);
 	
 	if( grapple_server_start(*server) == GRAPPLE_OK )
 	{
@@ -28,6 +28,10 @@ FE_NATIVE_FUNCTION( game_engine_network_server_start )
 		MARK_VARIABLE_AS_DISPOSABLE(server_variable);
 		FE_RETURN_VAR(server_variable);
 	}
+	else
+	{
+		printf("Server error: %s\n", grapple_error_text(grapple_server_error_get(*server)));
+	}
 	FE_RETURN_NULL_OBJECT;
 }
 
@@ -36,6 +40,7 @@ FE_NATIVE_FUNCTION( game_engine_network_server_destroy )
 	FeriteObject *self = FE_CONTAINER_TO_OBJECT;
 	grapple_server server = *((grapple_server *)self->odata);
 	grapple_server_destroy(server);
+	free((grapple_server *)self->odata);
 	self->odata = NULL;
 	FE_RETURN_VOID;
 }
@@ -161,7 +166,7 @@ FE_NATIVE_FUNCTION( game_engine_network_client_start )
 	
 	ferite_get_parameters(params, 5, &name, &version, &address, &port, &username);
 	
-	grapple_client *client = fmalloc(sizeof(grapple_client));
+	grapple_client *client = malloc(sizeof(grapple_client));
 	
 	(*client) = grapple_client_init(name->data, version->data);
 	grapple_client_address_set(*client, address->data);
@@ -179,7 +184,7 @@ FE_NATIVE_FUNCTION( game_engine_network_client_start )
 	}
 	else
 	{
-		//printf("Client error: %s\n", grapple_error_text(grapple_client_error_get(*client)));
+		printf("Client error: %s\n", grapple_error_text(grapple_client_error_get(*client)));
 	}
 	FE_RETURN_NULL_OBJECT;
 }
@@ -189,6 +194,7 @@ FE_NATIVE_FUNCTION( game_engine_network_client_destroy )
 	FeriteObject *self = FE_CONTAINER_TO_OBJECT;
 	grapple_client client = *((grapple_client *)self->odata);
 	grapple_client_destroy(client);
+	free((grapple_client *)self->odata);
 	self->odata = NULL;
 	FE_RETURN_VOID;
 }

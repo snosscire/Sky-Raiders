@@ -1,5 +1,4 @@
-#include "key.h"
-#include <SDL/SDL.h>
+#include "include.h"
 
 void game_engine_key_init( FeriteScript *script, FeriteNamespace *engine_namespace )
 {

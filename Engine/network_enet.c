@@ -1,7 +1,9 @@
-#include "network.h"
-#include <enet/enet.h>
+#include "include.h"
 
-static next_user_id = 65535;
+typedef struct __client {
+	ENetHost *host;
+	ENetPeer *peer;
+} Client;
 
 FE_NATIVE_FUNCTION( game_engine_network_server_start )
 {
@@ -39,7 +41,7 @@ FE_NATIVE_FUNCTION( game_engine_network_server_destroy )
 FE_NATIVE_FUNCTION( game_engine_network_server_service )
 {
 	FeriteObject *self = FE_CONTAINER_TO_OBJECT;
-	ENetHost *server = (EnetHost *)self->odata;
+	ENetHost *server = (ENetHost *)self->odata;
 	ENetEvent event;
 	
 	double timeout = 0.0;
@@ -57,47 +59,64 @@ FE_NATIVE_FUNCTION( game_engine_network_server_service )
 			}
 			case ENET_EVENT_TYPE_CONNECT:
 			{
-				int *id = malloc(sizeof(int));
-				*id = next_user_id;
-				event.peer->data = id;
-				next_user_id--;
-				FeriteNamespaceBucket *nsb = ferite_find_namespace(script, script->mainns, "Network.ConnectMessage", FENS_CLS);
-				message_variable = ferite_build_object(script, nsb->data);
-				FeriteVariable *type_variable = ferite_create_number_long_variable(script, "type", event.type, FE_STATIC);
-				FeriteVariable *id_variable = ferite_create_number_long_variable(script, "id", *event.peer->data, FE_STATIC);
-				MARK_VARIABLE_AS_DISPOSABLE(type_variable);
-				MARK_VARIABLE_AS_DISPOSABLE(id_variable);
+				FeriteVariable *peer_variable = NULL;
+				FeriteVariable *type_variable = NULL;
+
+				type_variable = ferite_create_number_long_variable(script, "type", event.type, FE_STATIC);
+				
+				peer_variable = ferite_build_object(script, (ferite_find_namespace(script, script->mainns, "Network.Peer", FENS_CLS))->data);
+				message_variable = ferite_build_object(script, (ferite_find_namespace(script, script->mainns, "Network.ConnectMessage", FENS_CLS))->data);
+				
 				ferite_object_set_var(script, VAO(message_variable), "type", type_variable);
-				ferite_object_set_var(script, VAO(message_variable), "id", id_variable);
+				ferite_object_set_var(script, VAO(message_variable), "peer", peer_variable);
+				
+				VAO(peer_variable)->odata = event.peer;
+
+				MARK_VARIABLE_AS_DISPOSABLE(message_variable);
+				
 				break;
 			}
 			case ENET_EVENT_TYPE_DISCONNECT:
 			{
-				FeriteNamespaceBucket *nsb = ferite_find_namespace(script, script->mainns, "Network.DisconnectMessage", FENS_CLS);
-				message_variable = ferite_build_object(script, nsb->data);
-				FeriteVariable *type_variable = ferite_create_number_long_variable(script, "type", event.type, FE_STATIC);
-				FeriteVariable *id_variable = ferite_create_number_long_variable(script, "id", *event.peer->data, FE_STATIC);
-				MARK_VARIABLE_AS_DISPOSABLE(type_variable);
-				MARK_VARIABLE_AS_DISPOSABLE(id_variable);
+				FeriteVariable *peer_variable = NULL;
+				FeriteVariable *type_variable = NULL;
+				
+				type_variable = ferite_create_number_long_variable(script, "type", event.type, FE_STATIC);
+				
+				peer_variable = ferite_build_object(script, (ferite_find_namespace(script, script->mainns, "Network.Peer", FENS_CLS))->data);;
+				message_variable = ferite_build_object(script, (ferite_find_namespace(script, script->mainns, "Network.DisconnectMessage", FENS_CLS))->data);
+				
 				ferite_object_set_var(script, VAO(message_variable), "type", type_variable);
-				ferite_object_set_var(script, VAO(message_variable), "id", id_variable);
+				ferite_object_set_var(script, VAO(message_variable), "peer", peer_variable);
+				
+				MARK_VARIABLE_AS_DISPOSABLE(message_variable);
+				
 				free(event.peer->data);
+				
 				break;
 			}
 			case ENET_EVENT_TYPE_RECEIVE:
 			{
-				FeriteNamespaceBucket *nsb = ferite_find_namespace(script, script->mainns, "Network.DataMessage", FENS_CLS);
-				message_variable = ferite_build_object(script, nsb->data);
-				FeriteVariable *type_variable = ferite_create_number_long_variable(script, "type", event.type, FE_STATIC);
-				FeriteVariable *id_variable = ferite_create_number_long_variable(script, "id", *event.peer->data, FE_STATIC);
-				FeriteVariable *data_variable = ferite_create_string_variable_from_ptr(script, "data", (char *)event.packet->data, event.packet->dataLength, FE_CHARSET_DEFAULT, FE_STATIC);
-				MARK_VARIABLE_AS_DISPOSABLE(type_variable);
-				MARK_VARIABLE_AS_DISPOSABLE(id_variable);
-				MARK_VARIABLE_AS_DISPOSABLE(data_variable);
+				FeriteVariable *peer_variable = NULL;
+				FeriteVariable *type_variable = NULL;
+				FeriteVariable *data_variable = NULL;
+
+				type_variable = ferite_create_number_long_variable(script, "type", event.type, FE_STATIC);
+				data_variable = ferite_create_string_variable_from_ptr(script, "data", (char *)event.packet->data, event.packet->dataLength, FE_CHARSET_DEFAULT, FE_STATIC);
+				
+				peer_variable = ferite_build_object(script, (ferite_find_namespace(script, script->mainns, "Network.Peer", FENS_CLS))->data);
+				message_variable = ferite_build_object(script, (ferite_find_namespace(script, script->mainns, "Network.DataMessage", FENS_CLS))->data);
+				
 				ferite_object_set_var(script, VAO(message_variable), "type", type_variable);
-				ferite_object_set_var(script, VAO(message_variable), "id", id_variable);
+				ferite_object_set_var(script, VAO(message_variable), "peer", peer_variable);
 				ferite_object_set_var(script, VAO(message_variable), "data", data_variable);
+				
+				MARK_VARIABLE_AS_DISPOSABLE(message_variable);
+				
+				VAO(peer_variable)->odata = event.peer;
+				
 				enet_packet_destroy(event.packet);
+				
 				break;
 			}
 			default:
@@ -117,48 +136,69 @@ FE_NATIVE_FUNCTION( game_engine_network_server_service )
 FE_NATIVE_FUNCTION( game_engine_network_server_send )
 {
 	FeriteObject *self = FE_CONTAINER_TO_OBJECT;
-	grapple_server server = *((grapple_server *)self->odata);
+	ENetHost *server = (ENetHost *)self->odata;
 	
-	double target = 0.0;
-	double flags = 0.0;
+	FeriteObject *peer = NULL;
 	FeriteString *data = NULL;
 	
-	ferite_get_parameters(params, 3, &target, &flags, &data);
+	ENetPacket *packet = NULL;
 	
-	grapple_server_send(server, target, flags, data->data, data->length);
+	ferite_get_parameters(params, 2, &peer, &data);
+	
+	packet = enet_packet_create(data->data, data->length, ENET_PACKET_FLAG_NO_ALLOCATE | ENET_PACKET_FLAG_RELIABLE);
+	
+	/*
+	printf("Test (1).\n");
+	if( !peer ) {
+		printf("Oh no (1).\n");
+	}
+	printf("Test (2).\n");
+	if( !VAO(peer) ) {
+		printf("Oh no (2).\n");
+	}
+	printf("Test (3).\n");
+	if( VAO(peer)->odata ) {
+		printf("Oh no (3).\n");
+	}
+	*/
+	
+	enet_peer_send((ENetPeer *)peer->odata, 0, packet);
+	enet_host_flush(server);
 	
 	FE_RETURN_VOID;
 }
 
 FE_NATIVE_FUNCTION( game_engine_network_client_start )
 {
-	FeriteString *name = NULL;
-	FeriteString *version = NULL;
-	FeriteString *address = NULL;
+	FeriteString *hostname = NULL;
 	double port = 0.0;
-	FeriteString *username = NULL;
 	
-	ferite_get_parameters(params, 5, &name, &version, &address, &port, &username);
+	ENetAddress address;
+	ENetHost *host = NULL;
 	
-	grapple_client *client = fmalloc(sizeof(grapple_client));
+	ferite_get_parameters(params, 2, &hostname, &port);
 	
-	(*client) = grapple_client_init(name->data, version->data);
-	grapple_client_address_set(*client, address->data);
-	grapple_client_port_set(*client, port);
-	grapple_client_protocol_set(*client, GRAPPLE_PROTOCOL_TCP);
-	grapple_client_name_set(*client, username->data);
+	enet_address_set_host(&address, hostname->data);
+	address.port = port;
 	
-	if( grapple_client_start(*client, 0) == GRAPPLE_OK )
+	host = enet_host_create(NULL, 1, 0, 0);
+	
+	if( host )
 	{
-		FeriteNamespaceBucket *nsb = ferite_find_namespace(script, script->mainns, "Network.Client", FENS_CLS);
-		FeriteVariable *server_variable = ferite_build_object(script, nsb->data);
-		VAO(server_variable)->odata = client;
-		MARK_VARIABLE_AS_DISPOSABLE(server_variable);
-		FE_RETURN_VAR(server_variable);
-	}
-	else
-	{
-		//printf("Client error: %s\n", grapple_error_text(grapple_client_error_get(*client)));
+		ENetPeer *peer = NULL;
+		peer = enet_host_connect(host, &address, 2);
+		
+		if( peer )
+		{
+			Client *client = (Client *)malloc(sizeof(Client));
+			FeriteVariable *client_variable = NULL;
+			client->host = host;
+			client->peer = peer;
+			client_variable = ferite_build_object(script, (ferite_find_namespace(script, script->mainns, "Network.Client", FENS_CLS))->data);
+			VAO(client_variable)->odata = client;
+			MARK_VARIABLE_AS_DISPOSABLE(client_variable);
+			FE_RETURN_VAR(client_variable);
+		}
 	}
 	FE_RETURN_NULL_OBJECT;
 }
@@ -166,137 +206,61 @@ FE_NATIVE_FUNCTION( game_engine_network_client_start )
 FE_NATIVE_FUNCTION( game_engine_network_client_destroy )
 {
 	FeriteObject *self = FE_CONTAINER_TO_OBJECT;
-	grapple_client client = *((grapple_client *)self->odata);
-	grapple_client_destroy(client);
+	Client *client = (Client *)self->odata;
+	enet_host_destroy(client->host);
+	free(client);
 	self->odata = NULL;
 	FE_RETURN_VOID;
 }
 
-FE_NATIVE_FUNCTION( game_engine_network_client_messages_waiting )
+FE_NATIVE_FUNCTION( game_engine_network_client_service )
 {
 	FeriteObject *self = FE_CONTAINER_TO_OBJECT;
-	grapple_client client = *((grapple_client *)self->odata);
-	FE_RETURN_VAR(ferite_create_boolean_variable(script, "messagesWaiting" , grapple_client_messages_waiting(client), FE_STATIC));
-}
-
-FE_NATIVE_FUNCTION( game_engine_network_client_pull_message )
-{
-	FeriteObject *self = FE_CONTAINER_TO_OBJECT;
-	grapple_client client = *((grapple_client *)self->odata);
-	grapple_message *message = grapple_client_message_pull(client);
+	Client *client = (Client *)self->odata;
+	ENetEvent event;
 	
-	if( message )
+	double timeout = 0.0;
+	ferite_get_parameters(params, 1, &timeout);
+	
+	if( enet_host_service(client->host, &event, (enet_uint32)timeout) )
 	{
 		FeriteVariable *message_variable = NULL;
-		switch( message->type )
+		
+		switch( event.type )
 		{
-			case GRAPPLE_MSG_NEW_USER:
-			case GRAPPLE_MSG_NEW_USER_ME:
+			case ENET_EVENT_TYPE_NONE:
 			{
-				FeriteNamespaceBucket *nsb = ferite_find_namespace(script, script->mainns, "Network.NewUserMessage", FENS_CLS);
-				message_variable = ferite_build_object(script, nsb->data);
-				FeriteVariable *type_variable = ferite_create_number_long_variable(script, "type", message->type, FE_STATIC);
-				FeriteVariable *id_variable = ferite_create_number_long_variable(script, "id", message->NEW_USER.id, FE_STATIC);
-				FeriteVariable *name_variable = ferite_create_string_variable_from_ptr(script, "name", message->NEW_USER.name, 0, FE_CHARSET_DEFAULT, FE_STATIC);
-				FeriteVariable *me_variable = ferite_create_boolean_variable(script, "me", message->NEW_USER.me, FE_STATIC);
-				MARK_VARIABLE_AS_DISPOSABLE(type_variable);
-				MARK_VARIABLE_AS_DISPOSABLE(id_variable);
-				MARK_VARIABLE_AS_DISPOSABLE(name_variable);
-				MARK_VARIABLE_AS_DISPOSABLE(me_variable);
-				ferite_object_set_var(script, VAO(message_variable), "type", type_variable);
-				ferite_object_set_var(script, VAO(message_variable), "id", id_variable);
-				ferite_object_set_var(script, VAO(message_variable), "name", name_variable);
-				ferite_object_set_var(script, VAO(message_variable), "me", me_variable);
 				break;
 			}
-			case GRAPPLE_MSG_USER_NAME:
+			case ENET_EVENT_TYPE_CONNECT:
 			{
-				FeriteNamespaceBucket *nsb = ferite_find_namespace(script, script->mainns, "Network.UserNameMessage", FENS_CLS);
-				message_variable = ferite_build_object(script, nsb->data);
-				FeriteVariable *type_variable = ferite_create_number_long_variable(script, "type", message->type, FE_STATIC);
-				FeriteVariable *id_variable = ferite_create_number_long_variable(script, "id", message->USER_NAME.id, FE_STATIC);
-				FeriteVariable *name_variable = ferite_create_string_variable_from_ptr(script, "name", message->USER_NAME.name, 0, FE_CHARSET_DEFAULT, FE_STATIC);
-				MARK_VARIABLE_AS_DISPOSABLE(type_variable);
-				MARK_VARIABLE_AS_DISPOSABLE(id_variable);
-				MARK_VARIABLE_AS_DISPOSABLE(name_variable);
+				FeriteVariable *type_variable = NULL;
+				type_variable = ferite_create_number_long_variable(script, "type", event.type, FE_STATIC);
+				message_variable = ferite_build_object(script, (ferite_find_namespace(script, script->mainns, "Network.ConnectMessage", FENS_CLS))->data);
 				ferite_object_set_var(script, VAO(message_variable), "type", type_variable);
-				ferite_object_set_var(script, VAO(message_variable), "id", id_variable);
-				ferite_object_set_var(script, VAO(message_variable), "name", name_variable);
+				MARK_VARIABLE_AS_DISPOSABLE(message_variable);
 				break;
 			}
-			case GRAPPLE_MSG_SESSION_NAME:
+			case ENET_EVENT_TYPE_DISCONNECT:
 			{
-				FeriteNamespaceBucket *nsb = ferite_find_namespace(script, script->mainns, "Network.SessionNameMessage", FENS_CLS);
-				message_variable = ferite_build_object(script, nsb->data);
-				FeriteVariable *type_variable = ferite_create_number_long_variable(script, "type", message->type, FE_STATIC);
-				FeriteVariable *name_variable = ferite_create_string_variable_from_ptr(script, "name", message->SESSION_NAME.name, 0, FE_CHARSET_DEFAULT, FE_STATIC);
-				MARK_VARIABLE_AS_DISPOSABLE(type_variable);
-				MARK_VARIABLE_AS_DISPOSABLE(name_variable);
+				FeriteVariable *type_variable = NULL;
+				type_variable = ferite_create_number_long_variable(script, "type", event.type, FE_STATIC);
+				message_variable = ferite_build_object(script, (ferite_find_namespace(script, script->mainns, "Network.DisconnectMessage", FENS_CLS))->data);
 				ferite_object_set_var(script, VAO(message_variable), "type", type_variable);
-				ferite_object_set_var(script, VAO(message_variable), "name", name_variable);
+				MARK_VARIABLE_AS_DISPOSABLE(message_variable);
 				break;
 			}
-			case GRAPPLE_MSG_USER_MSG:
+			case ENET_EVENT_TYPE_RECEIVE:
 			{
-				FeriteNamespaceBucket *nsb = ferite_find_namespace(script, script->mainns, "Network.UserDataMessage", FENS_CLS);
-				message_variable = ferite_build_object(script, nsb->data);
-				FeriteVariable *type_variable = ferite_create_number_long_variable(script, "type", message->type, FE_STATIC);
-				FeriteVariable *id_variable = ferite_create_number_long_variable(script, "id", message->USER_MSG.id, FE_STATIC);
-				FeriteVariable *data_variable = ferite_create_string_variable_from_ptr(script, "data", (char *)message->USER_MSG.data, message->USER_MSG.length, FE_CHARSET_DEFAULT, FE_STATIC);
-				MARK_VARIABLE_AS_DISPOSABLE(type_variable);
-				MARK_VARIABLE_AS_DISPOSABLE(id_variable);
-				MARK_VARIABLE_AS_DISPOSABLE(data_variable);
+				FeriteVariable *type_variable = NULL;
+				FeriteVariable *data_variable = NULL;
+				type_variable = ferite_create_number_long_variable(script, "type", event.type, FE_STATIC);
+				data_variable = ferite_create_string_variable_from_ptr(script, "data", (char *)event.packet->data, event.packet->dataLength, FE_CHARSET_DEFAULT, FE_STATIC);
+				message_variable = ferite_build_object(script, (ferite_find_namespace(script, script->mainns, "Network.DataMessage", FENS_CLS))->data);
 				ferite_object_set_var(script, VAO(message_variable), "type", type_variable);
-				ferite_object_set_var(script, VAO(message_variable), "id", id_variable);
 				ferite_object_set_var(script, VAO(message_variable), "data", data_variable);
-				break;
-			}
-			case GRAPPLE_MSG_USER_DISCONNECTED:
-			{
-				FeriteNamespaceBucket *nsb = ferite_find_namespace(script, script->mainns, "Network.UserDisconnectedMessage", FENS_CLS);
-				message_variable = ferite_build_object(script, nsb->data);
-				FeriteVariable *type_variable = ferite_create_number_long_variable(script, "type", message->type, FE_STATIC);
-				FeriteVariable *id_variable = ferite_create_number_long_variable(script, "id", message->USER_DISCONNECTED.id, FE_STATIC);
-				MARK_VARIABLE_AS_DISPOSABLE(type_variable);
-				MARK_VARIABLE_AS_DISPOSABLE(id_variable);
-				ferite_object_set_var(script, VAO(message_variable), "type", type_variable);
-				ferite_object_set_var(script, VAO(message_variable), "id", id_variable);
-				break;
-			}
-			case GRAPPLE_MSG_SERVER_DISCONNECTED:
-			{
-				FeriteNamespaceBucket *nsb = ferite_find_namespace(script, script->mainns, "Network.ServerDisconnectedMessage", FENS_CLS);
-				message_variable = ferite_build_object(script, nsb->data);
-				FeriteVariable *type_variable = ferite_create_number_long_variable(script, "type", message->type, FE_STATIC);
-				MARK_VARIABLE_AS_DISPOSABLE(type_variable);
-				ferite_object_set_var(script, VAO(message_variable), "type", type_variable);
-				break;
-			}
-			case GRAPPLE_MSG_CONNECTION_REFUSED:
-			{
-				FeriteNamespaceBucket *nsb = ferite_find_namespace(script, script->mainns, "Network.ConnectionRefusedMessage", FENS_CLS);
-				message_variable = ferite_build_object(script, nsb->data);
-				FeriteVariable *type_variable = ferite_create_number_long_variable(script, "type", message->type, FE_STATIC);
-				FeriteVariable *reason_variable = ferite_create_number_long_variable(script, "reason", message->CONNECTION_REFUSED.reason, FE_STATIC);
-				MARK_VARIABLE_AS_DISPOSABLE(type_variable);
-				MARK_VARIABLE_AS_DISPOSABLE(reason_variable);
-				ferite_object_set_var(script, VAO(message_variable), "type", type_variable);
-				ferite_object_set_var(script, VAO(message_variable), "reason", reason_variable);
-				break;
-			}
-			case GRAPPLE_MSG_PING:
-			{
-				FeriteNamespaceBucket *nsb = ferite_find_namespace(script, script->mainns, "Network.PingMessage", FENS_CLS);
-				message_variable = ferite_build_object(script, nsb->data);
-				FeriteVariable *type_variable = ferite_create_number_long_variable(script, "type", message->type, FE_STATIC);
-				FeriteVariable *id_variable = ferite_create_number_long_variable(script, "id", message->PING.id, FE_STATIC);
-				FeriteVariable *ping_time_variable = ferite_create_number_double_variable(script, "pingTime", message->PING.pingtime, FE_STATIC);
-				MARK_VARIABLE_AS_DISPOSABLE(type_variable);
-				MARK_VARIABLE_AS_DISPOSABLE(id_variable);
-				MARK_VARIABLE_AS_DISPOSABLE(ping_time_variable);
-				ferite_object_set_var(script, VAO(message_variable), "type", type_variable);
-				ferite_object_set_var(script, VAO(message_variable), "id", id_variable);
-				ferite_object_set_var(script, VAO(message_variable), "pingTime", ping_time_variable);
+				MARK_VARIABLE_AS_DISPOSABLE(message_variable);
+				enet_packet_destroy(event.packet);
 				break;
 			}
 			default:
@@ -305,8 +269,6 @@ FE_NATIVE_FUNCTION( game_engine_network_client_pull_message )
 			}
 		}
 	
-		grapple_message_dispose(message);
-		
 		if( message_variable )
 		{
 			FE_RETURN_VAR(message_variable);
@@ -318,15 +280,18 @@ FE_NATIVE_FUNCTION( game_engine_network_client_pull_message )
 FE_NATIVE_FUNCTION( game_engine_network_client_send )
 {
 	FeriteObject *self = FE_CONTAINER_TO_OBJECT;
-	grapple_client client = *((grapple_client *)self->odata);
+	Client *client = (Client *)self->odata;
 	
-	double target = 0.0;
-	double flags = 0.0;
 	FeriteString *data = NULL;
 	
-	ferite_get_parameters(params, 3, &target, &flags, &data);
+	ENetPacket *packet = NULL;
 	
-	grapple_client_send(client, target, flags, (void *)data->data, data->length);
+	ferite_get_parameters(params, 1, &data);
+	
+	packet = enet_packet_create(data->data, data->length, ENET_PACKET_FLAG_NO_ALLOCATE | ENET_PACKET_FLAG_RELIABLE);
+	
+	enet_peer_send(client->peer, 0, packet);
+	enet_host_flush(client->host);
 	
 	FE_RETURN_VOID;
 }
@@ -339,69 +304,34 @@ void game_engine_network_init( FeriteScript *script )
 	FeriteClass *server_class = ferite_register_inherited_class(script, network_namespace, "Server", NULL);
 	FeriteClass *client_class = ferite_register_inherited_class(script, network_namespace, "Client", NULL);
 	
-	ferite_register_ns_variable(script, network_namespace, "MESSAGE_NONE", ferite_create_number_long_variable(script, "MESSAGE_NONE", GRAPPLE_MSG_NONE, FE_STATIC));
-	ferite_register_ns_variable(script, network_namespace, "MESSAGE_NEW_USER", ferite_create_number_long_variable(script, "MESSAGE_NEW_USER", GRAPPLE_MSG_NEW_USER, FE_STATIC));
-	ferite_register_ns_variable(script, network_namespace, "MESSAGE_NEW_USER_ME", ferite_create_number_long_variable(script, "MESSAGE_NEW_USER_ME", GRAPPLE_MSG_NEW_USER_ME, FE_STATIC));
-	ferite_register_ns_variable(script, network_namespace, "MESSAGE_USER_NAME", ferite_create_number_long_variable(script, "MESSAGE_USER_NAME", GRAPPLE_MSG_USER_NAME, FE_STATIC));
-	ferite_register_ns_variable(script, network_namespace, "MESSAGE_USER_DATA", ferite_create_number_long_variable(script, "MESSAGE_USER_DATA", GRAPPLE_MSG_USER_MSG, FE_STATIC));
-	ferite_register_ns_variable(script, network_namespace, "MESSAGE_SESSION_NAME", ferite_create_number_long_variable(script, "MESSAGE_SESSION_NAME", GRAPPLE_MSG_SESSION_NAME, FE_STATIC));
-	ferite_register_ns_variable(script, network_namespace, "MESSAGE_USER_DISCONNECTED", ferite_create_number_long_variable(script, "MESSAGE_USER_DISCONNECTED", GRAPPLE_MSG_USER_DISCONNECTED, FE_STATIC));
-	ferite_register_ns_variable(script, network_namespace, "MESSAGE_SERVER_DISCONNECTED", ferite_create_number_long_variable(script, "MESSAGE_SERVER_DISCONNECTED", GRAPPLE_MSG_SERVER_DISCONNECTED, FE_STATIC));
-	ferite_register_ns_variable(script, network_namespace, "MESSAGE_CONNECTION_REFUSED", ferite_create_number_long_variable(script, "MESSAGE_CONNECTION_REFUSED", GRAPPLE_MSG_CONNECTION_REFUSED, FE_STATIC));
-	ferite_register_ns_variable(script, network_namespace, "MESSAGE_PING", ferite_create_number_long_variable(script, "MESSAGE_PING", GRAPPLE_MSG_PING, FE_STATIC));
-	ferite_register_ns_variable(script, network_namespace, "MESSAGE_GROUP_CREATE", ferite_create_number_long_variable(script, "MESSAGE_GROUP_CREATE", GRAPPLE_MSG_GROUP_CREATE, FE_STATIC));
-	ferite_register_ns_variable(script, network_namespace, "MESSAGE_GROUP_ADD", ferite_create_number_long_variable(script, "MESSAGE_GROUP_ADD", GRAPPLE_MSG_GROUP_ADD, FE_STATIC));
-	ferite_register_ns_variable(script, network_namespace, "MESSAGE_GROUP_REMOVE", ferite_create_number_long_variable(script, "MESSAGE_GROUP_REMOVE", GRAPPLE_MSG_GROUP_REMOVE, FE_STATIC));
-	ferite_register_ns_variable(script, network_namespace, "MESSAGE_GROUP_DELETE", ferite_create_number_long_variable(script, "MESSAGE_GROUP_DELETE", GRAPPLE_MSG_GROUP_DELETE, FE_STATIC));
-	ferite_register_ns_variable(script, network_namespace, "MESSAGE_YOU_ARE_HOST", ferite_create_number_long_variable(script, "MESSAGE_YOU_ARE_HOST", GRAPPLE_MSG_YOU_ARE_HOST, FE_STATIC));
-	ferite_register_ns_variable(script, network_namespace, "MESSAGE_CONFIRM_RECEIVED", ferite_create_number_long_variable(script, "MESSAGE_CONFIRM_RECEIVED", GRAPPLE_MSG_CONFIRM_RECEIVED, FE_STATIC));
-	ferite_register_ns_variable(script, network_namespace, "MESSAGE_CONFIRM_TIMEOUT", ferite_create_number_long_variable(script, "MESSAGE_CONFIRM_TIMEOUT", GRAPPLE_MSG_CONFIRM_TIMEOUT, FE_STATIC));
-	ferite_register_ns_variable(script, network_namespace, "MESSAGE_GAME_DESCRIPTION", ferite_create_number_long_variable(script, "MESSAGE_GAME_DESCRIPTION", GRAPPLE_MSG_GAME_DESCRIPTION, FE_STATIC));
-	
-	ferite_register_ns_variable(script, network_namespace, "CONNECTION_REFUSED_VERSION_MISMATCH", ferite_create_number_long_variable(script, "CONNECTION_REFUSED_VERSION_MISMATCH", GRAPPLE_NOCONN_VERSION_MISMATCH, FE_STATIC));
-	ferite_register_ns_variable(script, network_namespace, "CONNECTION_REFUSED_SERVER_FULL", ferite_create_number_long_variable(script, "CONNECTION_REFUSED_SERVER_FULL", GRAPPLE_NOCONN_SERVER_FULL, FE_STATIC));
-	ferite_register_ns_variable(script, network_namespace, "CONNECTION_REFUSED_SERVER_CLOSED", ferite_create_number_long_variable(script, "CONNECTION_REFUSED_SERVER_CLOSED", GRAPPLE_NOCONN_SERVER_CLOSED, FE_STATIC));
-	ferite_register_ns_variable(script, network_namespace, "CONNECTION_REFUSED_PASSWORD_MISMATCH", ferite_create_number_long_variable(script, "CONNECTION_REFUSED_PASSWORD_MISMATCH", GRAPPLE_NOCONN_PASSWORD_MISMATCH, FE_STATIC));
-	ferite_register_ns_variable(script, network_namespace, "CONNECTION_REFUSED_NAME_NOT_UNIQUE", ferite_create_number_long_variable(script, "CONNECTION_REFUSED_NAME_NOT_UNIQUE", GRAPPLE_NOCONN_NAME_NOT_UNIQUE, FE_STATIC));
-	ferite_register_ns_variable(script, network_namespace, "CONNECTION_REFUSED_PROTECTION_KEY_NOT_UNIQUE", ferite_create_number_long_variable(script, "CONNECTION_REFUSED_PROTECTION_KEY_NOT_UNIQUE", GRAPPLE_NOCONN_PROTECTIONKEY_NOT_UNIQUE, FE_STATIC));
+	ferite_register_ns_variable(script, network_namespace, "MESSAGE_DATA", ferite_create_number_long_variable(script, "MESSAGE_DATA", ENET_EVENT_TYPE_RECEIVE, FE_STATIC));
+	ferite_register_ns_variable(script, network_namespace, "MESSAGE_CONNECT", ferite_create_number_long_variable(script, "MESSAGE_CONNECT", ENET_EVENT_TYPE_CONNECT, FE_STATIC));
+	ferite_register_ns_variable(script, network_namespace, "MESSAGE_DISCONNECT", ferite_create_number_long_variable(script, "MESSAGE_DISCONNECT", ENET_EVENT_TYPE_DISCONNECT, FE_STATIC));
 
-	ferite_register_ns_variable(script, network_namespace, "EVERYONE", ferite_create_number_long_variable(script, "EVERYONE", GRAPPLE_EVERYONE, FE_STATIC));
-	ferite_register_ns_variable(script, network_namespace, "EVERYONEELSE", ferite_create_number_long_variable(script, "EVERYONEELSE", GRAPPLE_EVERYONEELSE, FE_STATIC));
-	ferite_register_ns_variable(script, network_namespace, "SERVER", ferite_create_number_long_variable(script, "SERVER", GRAPPLE_SERVER, FE_STATIC));
-	ferite_register_ns_variable(script, network_namespace, "RELIABLE", ferite_create_number_long_variable(script, "RELIABLE", GRAPPLE_RELIABLE, FE_STATIC));
-	ferite_register_ns_variable(script, network_namespace, "WAIT", ferite_create_number_long_variable(script, "WAIT", GRAPPLE_WAIT, FE_STATIC));
+	ferite_register_inherited_class(script, network_namespace, "Peer", NULL);
 	
-	ferite_register_inherited_class(script, network_namespace, "NewUserMessage", NULL);
-	ferite_register_inherited_class(script, network_namespace, "UserDisconnectedMessage", NULL);
-	ferite_register_inherited_class(script, network_namespace, "UserNameMessage", NULL);
-	ferite_register_inherited_class(script, network_namespace, "UserDataMessage", NULL);
-	ferite_register_inherited_class(script, network_namespace, "SessionNameMessage", NULL);
-	ferite_register_inherited_class(script, network_namespace, "ConnectionRefusedMessage", NULL);
-	ferite_register_inherited_class(script, network_namespace, "PingMessage", NULL);
-	ferite_register_inherited_class(script, network_namespace, "ServerDisconnectedMessage", NULL);
+	ferite_register_inherited_class(script, network_namespace, "ConnectMessage", NULL);
+	ferite_register_inherited_class(script, network_namespace, "DisconnectMessage", NULL);
+	ferite_register_inherited_class(script, network_namespace, "DataMessage", NULL);
 	
-	FeriteFunction *server_start_function = ferite_create_external_function(script, "start", game_engine_network_server_start, "ssns");
+	FeriteFunction *server_start_function = ferite_create_external_function(script, "start", game_engine_network_server_start, "n");
 	FeriteFunction *server_destroy_function = ferite_create_external_function(script, "destroy", game_engine_network_server_destroy, "");
-	FeriteFunction *server_messages_waiting_function = ferite_create_external_function(script, "messagesWaiting", game_engine_network_server_messages_waiting, "");
-	FeriteFunction *server_pull_message_function = ferite_create_external_function(script, "pullMessage", game_engine_network_server_pull_message, "");
-	FeriteFunction *server_send_function = ferite_create_external_function(script, "send", game_engine_network_server_send, "nns");
+	FeriteFunction *server_service_function = ferite_create_external_function(script, "service", game_engine_network_server_service, "n");
+	FeriteFunction *server_send_function = ferite_create_external_function(script, "send", game_engine_network_server_send, "os");
 	
 	ferite_register_class_function(script, server_class, server_start_function, FE_TRUE);
 	ferite_register_class_function(script, server_class, server_destroy_function, FE_FALSE);
-	ferite_register_class_function(script, server_class, server_messages_waiting_function, FE_FALSE);
-	ferite_register_class_function(script, server_class, server_pull_message_function, FE_FALSE);
+	ferite_register_class_function(script, server_class, server_service_function, FE_FALSE);
 	ferite_register_class_function(script, server_class, server_send_function, FE_FALSE);
 	
-	FeriteFunction *client_start_function = ferite_create_external_function(script, "start", game_engine_network_client_start, "sssns");
+	FeriteFunction *client_start_function = ferite_create_external_function(script, "start", game_engine_network_client_start, "sn");
 	FeriteFunction *client_destroy_function = ferite_create_external_function(script, "destroy", game_engine_network_client_destroy, "");
-	FeriteFunction *client_messages_waiting_function = ferite_create_external_function(script, "messagesWaiting", game_engine_network_client_messages_waiting, "");
-	FeriteFunction *client_pull_message_function = ferite_create_external_function(script, "pullMessage", game_engine_network_client_pull_message, "");
-	FeriteFunction *client_send_function = ferite_create_external_function(script, "send", game_engine_network_client_send, "nns");
+	FeriteFunction *client_service_function = ferite_create_external_function(script, "service", game_engine_network_client_service, "n");
+	FeriteFunction *client_send_function = ferite_create_external_function(script, "send", game_engine_network_client_send, "s");
 	
 	ferite_register_class_function(script, client_class, client_start_function, FE_TRUE);
 	ferite_register_class_function(script, client_class, client_destroy_function, FE_FALSE);
-	ferite_register_class_function(script, client_class, client_messages_waiting_function, FE_FALSE);
-	ferite_register_class_function(script, client_class, client_pull_message_function, FE_FALSE);
+	ferite_register_class_function(script, client_class, client_service_function, FE_FALSE);
 	ferite_register_class_function(script, client_class, client_send_function, FE_FALSE);
 }
 

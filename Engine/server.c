@@ -13,7 +13,7 @@ int main(int argc, char *argv[] )
 	FeriteScript *script = NULL;
 	char *error_message = NULL;
 	
-	//SDL_Init(SDL_INIT_VIDEO);
+	SDL_Init(SDL_INIT_VIDEO);
 	//SDL_EnableUNICODE(1);
 	
 	if( ferite_init(0, NULL) )
@@ -40,13 +40,13 @@ int main(int argc, char *argv[] )
 		}
 		if( error_message )
 		{
-			ffree(error_message);
+			//free(error_message);
 		}
 		ferite_script_delete(script);
 		ferite_deinit();
 	}
 	
-	//SDL_Quit();
+	SDL_Quit();
 	
 	return 0;
 }

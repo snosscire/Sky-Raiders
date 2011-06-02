@@ -1,0 +1,164 @@
+namespace modifies Network {
+	number MESSAGE_DISCONNECT_ME = 255;
+	number MESSAGE_ENTITY_UPDATE = 254;
+	number MESSAGE_NEW_USER      = 253;
+	
+	object client;
+	function currentClient() {
+		return .client;
+	}
+	function connect( string host, number port, string name ) {
+		.client = Network.Client.start(host, port);
+		if( .client )
+			return true;
+		return false;
+	}
+	function disconnect() {
+		if( .client ) {
+			.client.destroy();
+			.client = null;
+			MessageHandler.invokeListeners(new Network.DisconnectMeMessage());
+		}
+	}
+	
+	function addByteToData( string& data, number value ) {
+		data += String.numberToByte((value & 0xFF));
+	}
+	function addShortToData( string& data, number value ) {
+		data += String.numberToByte((value & 0xFF));
+		data += String.numberToByte((value >> 8) & 0xFF);
+	}
+	function addLongToData( string& data, number value ) {
+		data += String.numberToByte((value & 0xFF));
+		data += String.numberToByte((value >> 8) & 0xFF);
+		data += String.numberToByte((value >> 16) & 0xFF);
+		data += String.numberToByte((value >> 24) & 0xFF);
+	}
+	function addDoubleToData( string& data, number value ) {
+		.addLongToData(data, (value * 10000.0).floor().round());
+	}
+	function addStringToData( string& data, string value ) {
+		.addLongToData(data, value.length());
+		data += value;
+	}
+	function readByteFromData( string& data ) {
+		number value = 0;
+		value |= data[0].byteToNumber();
+		if( data.length() > 1 )
+			data = data[1..];
+		return value;
+	}
+	function readShortFromData( string& data ) {
+		number value = 0;
+		value |= data[0].byteToNumber();
+		value |= data[1].byteToNumber() << 8;
+		if( data.length() > 2 )
+			data = data[2..];
+		return value;
+	}
+	function readLongFromData( string& data ) {
+		number value = 0;
+		value |= data[0].byteToNumber();
+		value |= data[1].byteToNumber() << 8;
+		value |= data[2].byteToNumber() << 16;
+		value |= data[3].byteToNumber() << 24;
+		if( data.length() > 4 )
+			data = data[4..];
+		return value;
+	}
+	function readDoubleFromData( string& data ) {
+		number value = .readLongFromData(data);
+		return value / 10000.0;
+	}
+	function readStringFromData( string& data ) {
+		number length = .readLongFromData(data);
+		string value = data[..(length - 1)];
+		if( data.length() > length )
+			data = data[length..];
+		return value;
+	}
+	
+	function sendEntityUpdate( object entity ) {
+		if( .client ) {
+			string data;
+			Network.addByteToData(data, Network.MESSAGE_ENTITY_UPDATE);
+			Network.addByteToData(data, entity.id);
+			Network.addDoubleToData(data, entity.x);
+			Network.addDoubleToData(data, entity.y);
+			Network.addDoubleToData(data, entity.speed);
+			Network.addDoubleToData(data, entity.angle);
+			Network.addDoubleToData(data, entity.spriteAngle);
+			Network.addByteToData(data, entity.health);
+			Network.addByteToData(data, (entity.shotWeaponInLastUpdate() ? 1 : 0));
+			.client.send(data);
+		}
+	}
+	
+	function createDataMessage( string& data ) {
+		object message;
+		number type = Network.readByteFromData(data);
+		switch( type ) {
+			case Network.MESSAGE_NEW_USER:      message = Network.NewUserMessage.fromData(data); break;
+			case Network.MESSAGE_ENTITY_UPDATE: message = Network.createEntityUpdateMessage(data); break;
+		}
+		return message;
+	}
+	
+	function createEntityUpdateMessage( number id, string& data ) {
+		object message = new Network.EntityUpdateMessage();
+		message.type = Network.MESSAGE_ENTITY_UPDATE;
+		message.id = Network.readByteFromData(data);
+		message.x = Network.readDoubleFromData(data);
+		message.y = Network.readDoubleFromData(data);
+		message.speed = Network.readDoubleFromData(data);
+		message.angle = Network.readDoubleFromData(data);
+		message.spriteAngle = Network.readDoubleFromData(data);
+		message.health = Network.readByteFromData(data);
+		message.shoot = Network.readByteFromData(data);
+		return message;
+	}
+}
+
+namespace MessageHandler {
+	array listeners;
+	function unregisterAllListeners() {
+		.listeners = [];
+	}
+	function registerListener( number type, object listener ) {
+		if( not .listeners.keyExists("$type") )
+			.listeners["$type"] = [];
+		.listeners["$type"][] = listener;
+	}
+	function invokeListeners( object message ) {
+		if( message.type == Network.MESSAGE_DATA ) {
+			object dataMessage = Network.createDataMessage(message.data);
+			if( .listeners.keyExists("${dataMessage.type}") ) {
+				.listeners["${dataMessage.type}"].each() using ( listener ) {
+					switch( dataMessage.type ) {
+						case Network.MESSAGE_DISCONNECT_ME: listener.onUserDisconnectMe(dataMessage); break;
+						case Network.MESSAGE_NEW_USER:      listener.onNewUser(dataMessage); break;
+						case Network.MESSAGE_ENTITY_UPDATE: listener.onEntityUpdate(dataMessage); break;
+					}
+				};
+			}
+		} else {
+			if( .listeners.keyExists("${message.type}") ) {
+				.listeners["${message.type}"].each() using ( listener ) {
+					switch( message.type ) {
+						case Network.MESSAGE_CONNECT:       listener.onConnect(message); break;
+						case Network.MESSAGE_DISCONNECT_ME: listener.onUserDisconnectMe(message); break;
+					}
+				};
+			}
+		}
+	}
+	function update() {
+		object client = Network.currentClient();
+		if( client ) {
+			object message;
+			while( message = client.service(0) ) {
+				.invokeListeners(message);
+			}
+		}
+	}
+}
