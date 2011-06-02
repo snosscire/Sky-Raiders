@@ -1,13 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <ferite.h>
-#include <SDL/SDL.h>
-#include <enet/enet.h>
-
-#include "array.h"
-#include "string.h"
-#include "number.h"
-#include "engine.h"
+#include "include.h"
 
 int main(int argc, char *argv[] )
 {

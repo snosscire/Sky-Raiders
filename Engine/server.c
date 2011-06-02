@@ -1,20 +1,13 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <ferite.h>
-#include <SDL/SDL.h>
-
-#include "array.h"
-#include "string.h"
-#include "number.h"
-#include "engine.h"
+#include "include.h"
 
 int main(int argc, char *argv[] )
 {
 	FeriteScript *script = NULL;
 	char *error_message = NULL;
 	
-	//SDL_Init(SDL_INIT_VIDEO);
+	SDL_Init(SDL_INIT_VIDEO);
 	//SDL_EnableUNICODE(1);
+	enet_initialize();
 	
 	if( ferite_init(0, NULL) )
 	{
@@ -40,13 +33,14 @@ int main(int argc, char *argv[] )
 		}
 		if( error_message )
 		{
-			ffree(error_message);
+			//free(error_message);
 		}
 		ferite_script_delete(script);
 		ferite_deinit();
 	}
 	
-	//SDL_Quit();
+	enet_deinitialize();
+	SDL_Quit();
 	
 	return 0;
 }

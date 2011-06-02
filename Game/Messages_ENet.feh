@@ -1,0 +1,50 @@
+namespace modifies Network {
+	class NewUserMessage {
+		number type;
+		number id;
+		number x;
+		number y;
+		static function fromPlayer( object player ) {
+			object message = new Network.NewUserMessage();
+			message.type = Network.MESSAGE_NEW_USER;
+			message.id = player.id;
+			message.x = player.x;
+			message.y = player.y;
+			return message;
+		}
+		static function fromData( string& data ) {
+			object message = new Network.NewUserMessage();
+			message.type = Network.MESSAGE_NEW_USER;
+			message.id = Network.readByteFromData(data);
+			message.x = Network.readDoubleFromData(data);
+			message.y = Network.readDoubleFromData(data);
+			return message;
+		}
+		function toData() {
+			string data;
+			Network.addByteToData(data, .type);
+			Network.addByteToData(data, .id);
+			Network.addDoubleToData(data, .x);
+			Network.addDoubleToData(data, .y);
+			return data;
+		}
+	}
+	class DisconnectMeMessage {
+		number type;
+		constructor {
+			.type = Network.MESSAGE_DISCONNECT_ME;
+		}
+	}
+	class EntityUpdateMessage {
+		number type;
+		number id;
+		number x;
+		number y;
+		number speed;
+		number angle;
+		number spriteAngle;
+		number health;
+		number shoot;
+	}
+}
+

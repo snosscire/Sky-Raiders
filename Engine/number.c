@@ -1,5 +1,4 @@
-#include "number.h"
-#include <math.h>
+#include "include.h"
 
 FE_NATIVE_FUNCTION( ferite_number_round )
 {

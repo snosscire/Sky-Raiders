@@ -1,6 +1,6 @@
-uses 'Engine/Array.feh';
-uses 'Engine/String.feh';
-uses 'Engine/Font.feh';
+uses 'Game/Array.feh';
+uses 'Game/String.feh';
+uses 'Game/Font.feh';
 
 namespace modifies Engine {
 	number PI = 3.14159265;

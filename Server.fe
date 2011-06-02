@@ -1,18 +1,69 @@
-object server = Network.Server.start("Unknown", "0.1", 8899, "Test Game");
+uses 'Game/Array.feh';
+uses 'Game/String.feh';
+uses 'Game/Network_ENet.feh';
+uses 'Game/Messages_ENet.feh';
+
+namespace GameServer {
+	number nextID = 255;
+	array players;
+}
+
+class Player {
+	object peer;
+	number id;
+	number x;
+	number y;
+	number angle;
+	number spriteAngle;
+	number speed;
+	number health;
+}
+
+function GetNextID() {
+	number id = GameServer.nextID;
+	GameServer.nextID--;
+	return id;
+}
+
+function HandleConnect( object server, object connectMessage ) {
+	object newUserMessage;
+	string newUserMessagedata;
+	object player;
+	Engine.printLine('User connected.');
+	player = new Player();
+	player.peer = connectMessage.peer;
+	player.id = GetNextID();
+	player.x = 200;
+	player.y = 100;
+	player.angle = 0;
+	player.spriteAngle = 0;
+	player.speed = 1.8;
+	newUserMessage = Network.NewUserMessage.fromPlayer(player);
+	newUserMessagedata = newUserMessage.toData();
+	GameServer.players["Player/${player.id}"] = player;
+	GameServer.players.each() using ( p ) {
+		server.send(p.peer, newUserMessagedata);
+	};
+}
+
+function HandleDisconnect( object server, object message ) {
+	Engine.printLine('User disconnected.');
+}
+
+function HandleData( object server, object message ) {
+	string dataCopy = message.data;
+	Engine.printLine('User sent message.');
+}
+
+object server = Network.Server.start(8899);
+object message;
 
 while( true ) {
-	while( server.messagesWaiting() ) {
-		object message = server.pullMessage();
-		if( message ) {
-			switch( message.type )
-			{
-				case Network.MESSAGE_NEW_USER:
-					Engine.printLine("New user ${message.name} (${message.id}) connected.");
-					break;
-				case Network.MESSAGE_USER_DISCONNECTED:
-					Engine.printLine("User ${message.id} disconnected.");
-					break;
-			}
+	while( message = server.service(1000) ) {
+		switch( message.type ) {
+			case Network.MESSAGE_CONNECT:    HandleConnect(server, message); break;
+			case Network.MESSAGE_DISCONNECT: HandleDisconnect(server, message); break;
+			case Network.MESSAGE_DATA:       HandleData(server, message); break;
 		}
 	}
 }

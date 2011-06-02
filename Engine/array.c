@@ -1,4 +1,4 @@
-#include "array.h"
+#include "include.h"
 
 FE_NATIVE_FUNCTION( ferite_array_size )
 {

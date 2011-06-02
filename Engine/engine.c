@@ -1,12 +1,4 @@
-#include "engine.h"
-#include "key.h"
-#include "image.h"
-#include "network.h"
-#include <math.h>
-#include <errno.h>
-#include <unistd.h>
-#include <SDL/SDL.h>
-#include <SDL/SDL_image.h>
+#include "include.h"
 
 SDL_Surface *screen = NULL;
 
