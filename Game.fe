@@ -1,5 +1,5 @@
 uses 'Global.feh';
-uses 'Engine/Engine.feh';
+uses 'Game/Engine.feh';
 uses 'Game/Events.feh';
 uses 'Game/Network_ENet.feh';
 uses 'Game/Messages_ENet.feh';

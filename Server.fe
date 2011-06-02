@@ -1,5 +1,5 @@
-uses 'Engine/Array.feh';
-uses 'Engine/String.feh';
+uses 'Game/Array.feh';
+uses 'Game/String.feh';
 uses 'Game/Network_ENet.feh';
 uses 'Game/Messages_ENet.feh';
 
