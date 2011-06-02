@@ -6,6 +6,7 @@
 #include <math.h>
 #include <errno.h>
 #include <unistd.h>
+#include <time.h>
 
 #include <SDL/SDL.h>
 #include <SDL/SDL_image.h>
