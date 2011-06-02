@@ -100,17 +100,17 @@ class Player extends Entity {
 	number sendNextUpdate;
 	
 	constructor {
-		self('ssh-askpass-gnome.png');
-		.health = 100.0;
+		self(Global.PlayerSprite);
+		.health = Global.PlayerStartHealth;;
 		.stalling = false;
-		for( number i = 0; i < 20; i++ ) {
+		for( number i = 0; i < Global.PlayerSmokePuffOnScreenAmount; i++ ) {
 			.smokePuffs[] = new SmokePuff();
 		}
 		.deathExplosion = new DeathExplosion();
 	}
 	
 	function update( number deltaTime ) {
-		for( number i = 0; i < .smokePuffs.size(); i++ ) {
+		for( number i = 0; i < Global.PlayerSmokePuffOnScreenAmount; i++ ) {
 			.smokePuffs[i].update(deltaTime);
 		}
 		if( .health > 0.0 ) {
@@ -119,13 +119,13 @@ class Player extends Entity {
 			number deltaSpeed;
 			
 			if( Time.current >= .nextSmokePuff ) {
-				for( number i = 0; i < .smokePuffs.size(); i++ ) {
+				for( number i = 0; i < Global.PlayerSmokePuffOnScreenAmount; i++ ) {
 					if( .smokePuffs[i].currentLifeTime <= 0 ) {
 						.smokePuffs[i].init(.x, .y);
 						break;
 					}
 				}
-				.nextSmokePuff = Time.current + 100;
+				.nextSmokePuff = Time.current + Global.PlayerSmokePuffAppearInterval;
 			}
 			
 			.controller and .controller.update(deltaTime);
@@ -150,7 +150,7 @@ class Player extends Entity {
 					value = 180.0 - .angle;
 				}
 				gravityPercentage = value / 90.0;
-				deltaSpeed = deltaSpeed + ((Game.GRAVITY * gravityPercentage) * Entity.speedMultiplier(deltaTime));
+				deltaSpeed = deltaSpeed + ((Global.Gravity * gravityPercentage) * Entity.speedMultiplier(deltaTime));
 			} else if( /* up */ .angle > 180.0 and .angle < 360.0 ) {
 				number value = 90.0;
 				if( .angle < 270.0 ) {
@@ -159,7 +159,7 @@ class Player extends Entity {
 					value = 360.0 - .angle;
 				}
 				gravityPercentage = value / 90.0;
-				deltaSpeed = deltaSpeed - ((Game.GRAVITY * gravityPercentage) * Entity.speedMultiplier(deltaTime));
+				deltaSpeed = deltaSpeed - ((Global.Gravity * gravityPercentage) * Entity.speedMultiplier(deltaTime));
 			}
 
 			.x += (deltaSpeed * Engine.cos(radianAngle));
@@ -202,12 +202,12 @@ class Player extends Entity {
 		}
 		.deathExplosion.update(deltaTime);
 		
-		if( .health <= 0.0 and Time.current >= .timeOfDeath + 2000 ) {
-			.x = 200;
-			.y = 100;
-			.angle = 0.0;
-			.spriteAngle = 0.0;
-			.health = 100.0;
+		if( .health <= 0.0 and Time.current >= .timeOfDeath + Global.PlayerRespawnTime ) {
+			.x = Global.PlayerStartX;
+			.y = Global.PlayerStartY;
+			.angle = Global.PlayerStartAngle;
+			.spriteAngle = Global.PlayerStartAngle;
+			.health = Global.PlayerStartHealth;
 		}
 	}
 	
@@ -261,13 +261,13 @@ class SmokePuff extends Entity {
 	number lifeTime;
 	number currentLifeTime;
 	constructor {
-		self('smoke.png');
+		self(Global.PlayerSmokePuffSprite);
 	}
 	function init( number x, number y ) {
 		.x = x;
 		.y = y;
 		.zoom = 1.0;
-		.lifeTime = 2000;
+		.lifeTime = Global.PlayerSmokePuffLifeTime;
 		.currentLifeTime = .lifeTime;
 	}
 	function update( number deltaTime ) {
@@ -287,16 +287,20 @@ class SmokePuff extends Entity {
 
 class ExplosionSmokePuff extends SmokePuff {
 	constructor {
-		self('ExplosionSmokePuff.png');
+		self(Global.PlayerExplosionSmokePuffSprite);
 	}
 	function init( number x, number y ) {
+		number minSpeed;
+		number maxSpeed;
+		minSpeed = (Global.PlayerExplosionSmokePuffMinSpeed * 1000).round();
+		maxSpeed = (Global.PlayerExplosionSmokePuffMaxSpeed * 1000).round();
+		.speed = (Number.random(minSpeed, maxSpeed) + 0.0) / 1000;
+		.angle = Number.random(0, 360);
+		.zoom = 1.0;
+		.lifeTime = Global.PlayerExplosionSmokePuffLifeTime;
+		.currentLifeTime = .lifeTime;
 		.x = x;
 		.y = y;
-		.zoom = 1.0;
-		.lifeTime = 1500;
-		.currentLifeTime = .lifeTime;
-		.speed = (Number.random(1, 5) + 0.0) / 10;
-		.angle = Number.random(0, 360);
 	}
 	function update( number deltaTime ) {
 		if( .currentLifeTime > 0 ) {
@@ -319,25 +323,25 @@ class DeathExplosion extends Entity {
 	number currentShrinkTime;
 	array smokePuffs;
 	constructor {
-		.sprite = Engine.loadImageResource(Global.ExplosionSprite);
-		for( number i = 0; i < 10; i++ ) {
+		.sprite = Engine.loadImageResource(Global.PlayerExplosionSprite);
+		for( number i = 0; i < Global.PlayerExplosionSmokePuffAmount; i++ ) {
 			.smokePuffs[] = new ExplosionSmokePuff();
 		}
 	}
 	function init( number x, number y ) {
 		.x = x;
 		.y = y;
-		.growTime = Global.ExplosionGrowTime;
-		.shrinkTime = Global.ExplosionShrinkTime;
+		.growTime = Global.PlayerExplosionGrowTime;
+		.shrinkTime = Global.PlayerExplosionShrinkTime;
 		.currentGrowTime = .growTime;
 		.currentShrinkTime = .shrinkTime;
-		for( number i = 0; i < 10; i++ ) {
+		for( number i = 0; i < Global.PlayerExplosionSmokePuffAmount; i++ ) {
 			.smokePuffs[i].init(x, y);
 		}
 		
 	}
 	function update( number deltaTime ) {
-		for( number i = 0; i < 10; i++ ) {
+		for( number i = 0; i < Global.PlayerExplosionSmokePuffAmount; i++ ) {
 			.smokePuffs[i].update(deltaTime);
 		}
 		if( .currentGrowTime > 0 ) {
@@ -354,7 +358,7 @@ class DeathExplosion extends Entity {
 			Engine.drawImage(zoomedImage, .x - (zoomedImage.width() / 2), .y - (zoomedImage.height() / 2));
 			zoomedImage.unload();
 		}
-		for( number i = 0; i < 10; i++ ) {
+		for( number i = 0; i < Global.PlayerExplosionSmokePuffAmount; i++ ) {
 			.smokePuffs[i].draw();
 		}
 	}

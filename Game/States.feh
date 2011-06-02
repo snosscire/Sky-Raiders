@@ -18,10 +18,10 @@ class TestState extends State {
 		.player.controller.keyShoot = Engine.KEY_SPACE;
 		.player.controller.keyKill = Engine.KEY_k;
 		.player.weapon = new MachineGun(.player);
-		.player.speed = 1.8;
-		.player.turningSpeed = 1.0;
-		.player.x = 200;
-		.player.y = 100;
+		.player.speed = Global.PlayerSpeed;
+		.player.turningSpeed = Global.PlayerTurningSpeed;
+		.player.x = Global.PlayerStartX;
+		.player.y = Global.PlayerStartY;
 		.background = Engine.loadImageResource('background.png');
 		.active = true;
 		if( not .listenersRegistered ) {
@@ -137,10 +137,10 @@ class MultiplayerState extends State {
 		player.id = message.id;
 		//player.name = message.name;
 		player.me = me;
-		player.speed = 1.8;
-		player.turningSpeed = 1.0;
-		player.x = 200;
-		player.y = 100;
+		player.speed = Global.PlayerSpeed;
+		player.turningSpeed = Global.PlayerTurningSpeed;
+		player.x = Global.PlayerStartX;
+		player.y = Global.PlayerStartY;
 
 		if( me ) {
 			player.controller = new KeyboardPlayerController(player);

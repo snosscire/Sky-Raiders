@@ -8,7 +8,6 @@ class Projectile extends Entity {
 }
 
 class Bullet extends Projectile {
-	static final number SPEED = 4.0;
 	object origin;
 	object sprite;
 	object collisionRectangle;
@@ -18,14 +17,14 @@ class Bullet extends Projectile {
 	constructor( object origin ) {
 		.origin = origin;
 		.active = false;
-		.speed = Bullet.SPEED;
-		.sprite = Engine.loadImageResource('bullet.png');
+		.speed = Global.MachineGunBulletSpeed;
+		.sprite = Engine.loadImageResource(Global.MachineGunBulletSprite);
 		.collisionRectangle = new Rectangle();
 		.collisionRectangle.width = .sprite.width();
 		.collisionRectangle.height = .sprite.height();
 	}
 	function update( number deltaTime ) {
-		number radianAngle = .angle * (Engine.PI / 180);
+		number radianAngle = .angle * Engine.PI180;
 		number deltaSpeed = (.speed * Entity.speedMultiplier(deltaTime));
 		.x += (deltaSpeed * Engine.cos(radianAngle));
 		.y += (deltaSpeed * Engine.sin(radianAngle));
@@ -54,7 +53,6 @@ class Bullet extends Projectile {
 }
 
 class MachineGun extends Weapon {
-	static final number BULLETS = 100;
 	object owner;
 	array bullets;
 	array activeBullets;
@@ -64,7 +62,7 @@ class MachineGun extends Weapon {
 	}
 	constructor( object owner ) {
 		.owner = owner;
-		for( number i = 0; i < MachineGun.BULLETS; i++ ) {
+		for( number i = 0; i < Global.MachineGunBulletOnScreenAmount; i++ ) {
 			.bullets[] = new Bullet(.owner);
 		}
 	}
@@ -86,7 +84,7 @@ class MachineGun extends Weapon {
 		}
 	}
 	function shoot( object origin ) {
-		for( number i = 0; i < MachineGun.BULLETS; i++ ) {
+		for( number i = 0; i < Global.MachineGunBulletOnScreenAmount; i++ ) {
 			if( not .bullets[i].active ) {
 				.bullets[i].x = origin.x;
 				.bullets[i].y = origin.y;

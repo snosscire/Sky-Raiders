@@ -18,10 +18,6 @@ namespace Time {
 }
 
 class modifies Game {
-	static final string NAME = 'Unknown';
-	static final string VERSION = '0.1';
-	static final number GRAVITY = 1.0;
-
 	static boolean running;
 	
 	static object menuState;
@@ -47,9 +43,9 @@ class modifies Game {
 			//Engine.setScreen(1280, 800, true);
 			//Engine.setScreen(640, 480, true);
 			
-			font = Engine.loadFont('font-10.png', 10, 10);
+			font = Engine.loadFont(Global.FontFPS, 10, 10);
 			
-			Console.init(Engine.loadFont('font-console.png', 10, 10, -2));
+			Console.init(Engine.loadFont(Global.FontConsole, 10, 10, -2));
 			//Console.init(Engine.loadFont('font-bachler.bmp', 10, 10));
 			//Console.init(font);
 			

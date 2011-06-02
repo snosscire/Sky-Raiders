@@ -1,17 +1,35 @@
 namespace Global {
+	/*************************************************************************
+	 * Game
+	 *************************************************************************/
 	number Gravity = 1.0;
-	string ExplosionSprite = "explosion.png";
-	number ExplosionGrowTime = 25;
-	number ExplosionShrinkTime = 125;
+	string FontFPS = "font-10.png";
+	string FontConsole = "font-console.png";
 	/*************************************************************************
 	 * Player
 	 *************************************************************************/
 	string PlayerSprite = "ssh-askpass-gnome.png";
-	number PlayerHealth = 100.0;
+	number PlayerSpeed = 1.8;
+	number PlayerTurningSpeed = 1.0;
+	number PlayerStartX = 200;
+	number PlayerStartY = 100;
+	number PlayerStartAngle = 0.0;
+	number PlayerStartHealth = 100.0;
+	number PlayerRespawnTime = 2000;
 	/* Smoke Puffs */
+	string PlayerSmokePuffSprite = "smoke.png";
 	number PlayerSmokePuffOnScreenAmount = 20;
 	number PlayerSmokePuffAppearInterval = 100;
 	number PlayerSmokePuffLifeTime = 2000;
+	/* Explosion */
+	string PlayerExplosionSprite = "explosion.png";
+	number PlayerExplosionGrowTime = 25;
+	number PlayerExplosionShrinkTime = 125;
+	string PlayerExplosionSmokePuffSprite = "ExplosionSmokePuff.png";
+	number PlayerExplosionSmokePuffAmount = 10;
+	number PlayerExplosionSmokePuffLifeTime = 1500;
+	number PlayerExplosionSmokePuffMinSpeed = 0.1;
+	number PlayerExplosionSmokePuffMaxSpeed = 0.5;
 	/*************************************************************************
 	* Weapons
 	**************************************************************************/
