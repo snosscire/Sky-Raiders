@@ -27,26 +27,125 @@ class Camera {
 	}
 }
 
-class Map {
-	object background;
+class MapLayer {
+	number screenX;
+	number screenY;
+	number level;
+	number speed;
+	number imageX;
+	number imageY;
+	object image;
 	function unload() {
-		Engine.unloadImageResource(.background);
+		if( .image ) {
+			Engine.unloadImageResource(.image);
+		}
+	}
+	function draw( number changeX, number changeY ) {
+		.imageX = .imageX + (changeX * .speed);
+		.imageY = .imageY + changeY;
+		Engine.drawImage(.image, .screenX, .screenY, .imageX, .imageY, Engine.screenWidth(), Engine.screenHeight());
+	}
+}
+
+class Map {
+	array layers;
+	number width;
+	number height;
+	number changeX;
+	number changeY;
+	number lastCameraLeft;
+	number lastCameraTop;
+	static function load( string name ) {
+		object map = new Map();
+		object layer;
+		
+		layer = new MapLayer();
+		layer.screenX = 0;
+		layer.screenY = 0;
+		layer.level = -5;
+		layer.speed = 0.2;
+		layer.image = Engine.loadImageResource("enviorment/sky_test2.bmp");
+		map.layers[] = layer;
+
+		layer = new MapLayer();
+		layer.screenX = 0;
+		layer.screenY = Engine.screenHeight() - 58 - 480;
+		layer.level = -4;
+		layer.speed = 0.4;
+		layer.image = Engine.loadImageResource("enviorment/mountains_back.bmp");
+		layer.image.setTransparentColor(layer.image.getColor(253, 203, 203));
+		map.layers[] = layer;
+
+
+		layer = new MapLayer();
+		layer.screenX = 0;
+		layer.screenY = Engine.screenHeight() - 58 - 80;
+		layer.level = -3;
+		layer.speed = 0.6;
+		layer.image = Engine.loadImageResource("enviorment/mid_hills_small.png");
+		map.layers[] = layer;
+
+		layer = new MapLayer();
+		layer.screenX = 0;
+		layer.screenY = Engine.screenHeight() - 58;
+		layer.level = -1;
+		layer.speed = 1.0;
+		layer.image = Engine.loadImageResource("enviorment/ground_bottom_small.png");
+		map.layers[] = layer;
+
+
+		layer = new MapLayer();
+		layer.screenX = 0;
+		layer.screenX = 0;
+		layer.level = 1;
+		layer.speed = 1.0;
+		layer.image = Engine.loadImageResource("enviorment/clouds_top_small.png");
+		map.layers[] = layer;
+		
+		/*layer = new MapLayer();
+		layer.screenX = 0;
+		layer.screenX = 0;
+		layer.level = 1;
+		layer.speed = 1.0;
+		layer.image = Engine.loadImageResource("enviorment/sky_test2.bmp");
+		map.layers[] = layer;*/
+		
+		
+		map.width = 4050;
+		map.height = 720;
+		
+		return map;
+	}
+	function unload() {
+		.layers.each() using ( layer ) {
+			layer.unload();
+		};
 	}
 	function getWidth() {
-		return .background.width();
+		return .width;
 	}
 	function getHeight() {
-		return .background.height();
+		return .height;
 	}
-	function drawBackground( object playerCamera ) {
-		number w = Engine.screenWidth();
-		number h = Engine.screenHeight();
-		number x = playerCamera.left;
-		number y = playerCamera.top;
-		Engine.drawImage(.background, 0 /* screen x */, 0 /* screen y */, x, y, w, h);
+	function update( object playerCamera ) {
+		.changeX = playerCamera.left - .lastCameraLeft;
+		.changeY = playerCamera.top - .lastCameraTop;
+		.lastCameraLeft = playerCamera.left;
+		.lastCameraTop = playerCamera.top;
 	}
-	function drawForeground( object playerCamera ) {
-		
+	function drawBackground() {
+		.layers.each() using ( layer ) {
+			if( layer.level <= 0 ) {
+				layer.draw(.changeX, .changeY);
+			}
+		};
+	}
+	function drawForeground() {
+		.layers.each() using ( layer ) {
+			if( layer.level > 0 ) {
+				layer.draw(.changeX, .changeY);
+			}
+		};
 	}
 }
 

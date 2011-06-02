@@ -5,7 +5,7 @@ class Font {
 	number rightMargin;
 	constructor( string filename, number w, number h ) {
 		.fontImage = Engine.loadImageResource('Fonts/' + filename, true);
-		.fontImage.setTransparentColor(.fontImage.getColor(0, 0, 0));
+		//.fontImage.setTransparentColor(.fontImage.getColor(0, 0, 0));
 		.width = w;
 		.height = h;
 		.rightMargin = 0;

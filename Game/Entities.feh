@@ -112,9 +112,9 @@ class Player extends Entity {
 	}
 	
 	function update( number deltaTime, object currentMap ) {
-		for( number i = 0; i < Global.PlayerSmokePuffOnScreenAmount; i++ ) {
-			.smokePuffs[i].update(deltaTime);
-		}
+		//for( number i = 0; i < Global.PlayerSmokePuffOnScreenAmount; i++ ) {
+		//	.smokePuffs[i].update(deltaTime);
+		//}
 		.weapon and .weapon.update(deltaTime, currentMap);
 		if( .health > 0.0 ) {
 			number radianAngle;
@@ -215,9 +215,9 @@ class Player extends Entity {
 	
 	function draw( object playerCamera, object currentMap ) {
 		if( .me or (.x >= playerCamera.left and .x <= playerCamera.right and .y >= playerCamera.top and .y <= playerCamera.bottom) ) {
-			.smokePuffs.each() using ( smokePuff ) {
-				smokePuff.draw(playerCamera);
-			};
+			//.smokePuffs.each() using ( smokePuff ) {
+			//	smokePuff.draw(playerCamera);
+			//};
 			if( .health > 0.0 ) {
 				number x;
 				number y;

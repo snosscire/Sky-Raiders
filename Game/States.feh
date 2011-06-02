@@ -12,8 +12,7 @@ class TestState extends State {
 	object playerCamera;
 	object player;
 	function init() {
-		.map = new Map();
-		.map.background = Engine.loadImageResource('enviorment/sky_test2.bmp');
+		.map = Map.load("Test");
 		
 		.playerCamera = new Camera();
 		
@@ -49,10 +48,12 @@ class TestState extends State {
 		//}
 		.player.update(Time.delta, .map);
 		.playerCamera.update(.map, .player);
+		.map.update(.playerCamera);
 	}
 	function draw() {
-		.map.drawBackground(.playerCamera);
+		.map.drawBackground();
 		.player.draw(.playerCamera, .map);
+		.map.drawForeground();
 	}
 	function onKeyDown( object event ) {
 		if( .active and (not Console.active) ) {
@@ -88,8 +89,7 @@ class MultiplayerState extends State {
 			MessageHandler.registerListener(Network.MESSAGE_NEW_PLAYER, self);
 			.listenersRegistered = true;
 		}
-		.currentMap = new Map();
-		.currentMap.background = Engine.loadImageResource('enviorment/sky_test2.bmp');
+		.currentMap = Map.load("Test");
 		.playerCamera = new Camera();
 		.connected = false;
 		.active = true;
@@ -131,15 +131,17 @@ class MultiplayerState extends State {
 			};
 			//.localPlayer.update(Time.delta, .currentMap);
 			.playerCamera.update(.currentMap, .localPlayer);
+			.currentMap.update(.playerCamera);
 		}
 	}
 	function draw() {
 		if( .connected ) {
-			.currentMap.drawBackground(.playerCamera);
+			.currentMap.drawBackground();
 			.players.each() using ( player ) {
 				player.draw(.playerCamera, .currentMap);
 			};
 			//.localPlayer.draw(.playerCamera, .currentMap);
+			.currentMap.drawForeground();
 		}
 	}
 	
@@ -153,6 +155,9 @@ class MultiplayerState extends State {
 	
 	function createPlayer( object message, boolean me ) {
 		object player;
+		
+		if( .players.keyExists("Player/${message.id}") )
+			return; // This should not be possible but for some reason this happens sometimes.
 		
 		Console.printLine("creating player... ${me} (${message.id})");
 		
