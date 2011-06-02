@@ -1,20 +1,20 @@
 namespace modifies Network {
-	class NewUserMessage {
+	class NewPlayerMessage {
 		number type;
 		number id;
 		number x;
 		number y;
 		static function fromPlayer( object player ) {
-			object message = new Network.NewUserMessage();
-			message.type = Network.MESSAGE_NEW_USER;
+			object message = new Network.NewPlayerMessage();
+			message.type = Network.MESSAGE_NEW_PLAYER;
 			message.id = player.id;
 			message.x = player.x;
 			message.y = player.y;
 			return message;
 		}
-		static function fromData( string& data ) {
-			object message = new Network.NewUserMessage();
-			message.type = Network.MESSAGE_NEW_USER;
+		static function fromData( string& data, boolean hasType ) {
+			object message = new Network.NewPlayerMessage();
+			message.type = (hasType ? Network.readByteFromData(data) : Network.MESSAGE_NEW_PLAYER);
 			message.id = Network.readByteFromData(data);
 			message.x = Network.readDoubleFromData(data);
 			message.y = Network.readDoubleFromData(data);
@@ -35,7 +35,7 @@ namespace modifies Network {
 			.type = Network.MESSAGE_DISCONNECT_ME;
 		}
 	}
-	class EntityUpdateMessage {
+	class PlayerUpdateMessage {
 		number type;
 		number id;
 		number x;
@@ -44,7 +44,46 @@ namespace modifies Network {
 		number angle;
 		number spriteAngle;
 		number health;
-		number shoot;
+		boolean shoot;
+		static function fromPlayer( object player ) {
+			object message = new Network.PlayerUpdateMessage();
+			message.type = Network.MESSAGE_PLAYER_UPDATE;
+			message.id = player.id;
+			message.x = player.x;
+			message.y = player.y;
+			message.speed = player.speed;
+			message.angle = player.angle;
+			message.spriteAngle = player.spriteAngle;
+			message.health = player.health;
+			message.shoot = player.shotWeaponInLastUpdate();
+			return message;
+		}
+		static function fromData( string& data, boolean hasType ) {
+			object message = new Network.PlayerUpdateMessage();
+			message.type = (hasType ? Network.readByteFromData(data) : Network.MESSAGE_PLAYER_UPDATE);
+			message.id = Network.readByteFromData(data);
+			message.x = Network.readDoubleFromData(data);
+			message.y = Network.readDoubleFromData(data);
+			message.speed = Network.readDoubleFromData(data);
+			message.angle = Network.readDoubleFromData(data);
+			message.spriteAngle = Network.readDoubleFromData(data);
+			message.health = Network.readByteFromData(data);
+			message.shoot = (Network.readByteFromData(data) ? true : false);
+			return message;
+		}
+		function toData() {
+			string data;
+			Network.addByteToData(data, .type);
+			Network.addByteToData(data, .id);
+			Network.addDoubleToData(data, .x);
+			Network.addDoubleToData(data, .y);
+			Network.addDoubleToData(data, .speed);
+			Network.addDoubleToData(data, .angle);
+			Network.addDoubleToData(data, .spriteAngle);
+			Network.addByteToData(data, .health);
+			Network.addByteToData(data, (.shoot ? 1 : 0));
+			return data;		
+		}
 	}
 }
 

@@ -26,33 +26,65 @@ function GetNextID() {
 }
 
 function HandleConnect( object server, object connectMessage ) {
-	object newUserMessage;
-	string newUserMessagedata;
-	object player;
+	object newPlayer;
+	object newPlayerMessage;
+	string newPlayerMessageData;
+	
 	Engine.printLine('User connected.');
-	player = new Player();
-	player.peer = connectMessage.peer;
-	player.id = GetNextID();
-	player.x = 200;
-	player.y = 100;
-	player.angle = 0;
-	player.spriteAngle = 0;
-	player.speed = 1.8;
-	newUserMessage = Network.NewUserMessage.fromPlayer(player);
-	newUserMessagedata = newUserMessage.toData();
-	GameServer.players["Player/${player.id}"] = player;
-	GameServer.players.each() using ( p ) {
-		server.send(p.peer, newUserMessagedata);
+	
+	newPlayer = new Player();
+	newPlayer.peer = connectMessage.peer;
+	newPlayer.id = GetNextID();
+	newPlayer.x = 200;
+	newPlayer.y = 100;
+	newPlayer.angle = 0;
+	newPlayer.spriteAngle = 0;
+	newPlayer.speed = 1.8;
+	
+	newPlayerMessage = Network.NewPlayerMessage.fromPlayer(newPlayer);
+	newPlayerMessageData = newPlayerMessage.toData();
+	
+	// Tell the new player that it has joined the game.
+	server.send(newPlayer.peer, newPlayerMessageData);
+	// Tell the new player about the players that are already connected.
+	GameServer.players.each() using ( player ) {
+		server.send(newPlayer.peer, Network.NewPlayerMessage.fromPlayer(player).toData());
 	};
+	// Tell the already connected players that a new player has connected.
+	GameServer.players.each() using ( player ) {
+		server.send(player.peer, newPlayerMessageData);
+	};
+	
+	GameServer.players["Player/${newPlayer.id}"] = newPlayer;
 }
 
 function HandleDisconnect( object server, object message ) {
 	Engine.printLine('User disconnected.');
 }
 
+function HandlePlayerUpdate( object server, string& data ) {
+	string dataCopy = data;
+	object message = Network.PlayerUpdateMessage.fromData(data, true);
+	object player = GameServer.players["Player/${message.id}"];
+	player.x = message.x;
+	player.y = message.y;
+	player.angle = message.angle;
+	player.spriteAngle = message.spriteAngle;
+	player.speed = message.speed;
+	player.health = message.health;
+	GameServer.players.each() using ( player ) {
+		if( player.id != message.id ) {
+			server.send(player.peer, dataCopy);
+		}
+	};
+}
+
 function HandleData( object server, object message ) {
 	string dataCopy = message.data;
-	Engine.printLine('User sent message.');
+	number type = Network.readByteFromData(message.data);
+	switch( type ) {
+		case Network.MESSAGE_PLAYER_UPDATE: HandlePlayerUpdate(server, dataCopy); break;
+	}
 }
 
 object server = Network.Server.start(8899);

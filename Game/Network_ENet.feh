@@ -1,7 +1,7 @@
 namespace modifies Network {
 	number MESSAGE_DISCONNECT_ME = 255;
-	number MESSAGE_ENTITY_UPDATE = 254;
-	number MESSAGE_NEW_USER      = 253;
+	number MESSAGE_PLAYER_UPDATE = 254;
+	number MESSAGE_NEW_PLAYER    = 253;
 	
 	object client;
 	function currentClient() {
@@ -78,43 +78,17 @@ namespace modifies Network {
 		return value;
 	}
 	
-	function sendEntityUpdate( object entity ) {
-		if( .client ) {
-			string data;
-			Network.addByteToData(data, Network.MESSAGE_ENTITY_UPDATE);
-			Network.addByteToData(data, entity.id);
-			Network.addDoubleToData(data, entity.x);
-			Network.addDoubleToData(data, entity.y);
-			Network.addDoubleToData(data, entity.speed);
-			Network.addDoubleToData(data, entity.angle);
-			Network.addDoubleToData(data, entity.spriteAngle);
-			Network.addByteToData(data, entity.health);
-			Network.addByteToData(data, (entity.shotWeaponInLastUpdate() ? 1 : 0));
-			.client.send(data);
-		}
+	function send( object message ) {
+		.client.send(message.toData());
 	}
 	
 	function createDataMessage( string& data ) {
 		object message;
 		number type = Network.readByteFromData(data);
 		switch( type ) {
-			case Network.MESSAGE_NEW_USER:      message = Network.NewUserMessage.fromData(data); break;
-			case Network.MESSAGE_ENTITY_UPDATE: message = Network.createEntityUpdateMessage(data); break;
+			case Network.MESSAGE_NEW_PLAYER:    message = Network.NewPlayerMessage.fromData(data, false); break;
+			case Network.MESSAGE_PLAYER_UPDATE: message = Network.PlayerUpdateMessage.fromData(data, false); break;
 		}
-		return message;
-	}
-	
-	function createEntityUpdateMessage( number id, string& data ) {
-		object message = new Network.EntityUpdateMessage();
-		message.type = Network.MESSAGE_ENTITY_UPDATE;
-		message.id = Network.readByteFromData(data);
-		message.x = Network.readDoubleFromData(data);
-		message.y = Network.readDoubleFromData(data);
-		message.speed = Network.readDoubleFromData(data);
-		message.angle = Network.readDoubleFromData(data);
-		message.spriteAngle = Network.readDoubleFromData(data);
-		message.health = Network.readByteFromData(data);
-		message.shoot = Network.readByteFromData(data);
 		return message;
 	}
 }
@@ -135,9 +109,9 @@ namespace MessageHandler {
 			if( .listeners.keyExists("${dataMessage.type}") ) {
 				.listeners["${dataMessage.type}"].each() using ( listener ) {
 					switch( dataMessage.type ) {
-						case Network.MESSAGE_DISCONNECT_ME: listener.onUserDisconnectMe(dataMessage); break;
-						case Network.MESSAGE_NEW_USER:      listener.onNewUser(dataMessage); break;
-						case Network.MESSAGE_ENTITY_UPDATE: listener.onEntityUpdate(dataMessage); break;
+						//case Network.MESSAGE_DISCONNECT_ME: listener.onDisconnectMe(dataMessage); break;
+						case Network.MESSAGE_NEW_PLAYER:    listener.onNewPlayer(dataMessage); break;
+						case Network.MESSAGE_PLAYER_UPDATE: listener.onPlayerUpdate(dataMessage); break;
 					}
 				};
 			}
@@ -146,7 +120,7 @@ namespace MessageHandler {
 				.listeners["${message.type}"].each() using ( listener ) {
 					switch( message.type ) {
 						case Network.MESSAGE_CONNECT:       listener.onConnect(message); break;
-						case Network.MESSAGE_DISCONNECT_ME: listener.onUserDisconnectMe(message); break;
+						case Network.MESSAGE_DISCONNECT_ME: listener.onDisconnectMe(message); break;
 					}
 				};
 			}

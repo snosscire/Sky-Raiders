@@ -73,7 +73,7 @@ class MultiplayerState extends State {
 			EventHandler.registerListener(Engine.EVENT_KEYDOWN, self);
 			MessageHandler.registerListener(Network.MESSAGE_DISCONNECT_ME, self);
 			MessageHandler.registerListener(Network.MESSAGE_CONNECT, self);
-			MessageHandler.registerListener(Network.MESSAGE_NEW_USER, self);
+			MessageHandler.registerListener(Network.MESSAGE_NEW_PLAYER, self);
 			.listenersRegistered = true;
 		}
 		.background = Engine.loadImageResource('background.png');
@@ -85,7 +85,7 @@ class MultiplayerState extends State {
 			Console.flush();
 			Network.disconnect();
 			if( Network.connect(.host, .port, 'Player') ) {
-				Console.printLine('successfully connected.');
+				Console.printLine('waiting for response....');
 			} else {
 				Console.printLine('failed.');
 			}
@@ -160,12 +160,12 @@ class MultiplayerState extends State {
 		if( .active ) {
 		}
 	}
-	function onUserDisconnectMe( object message ) {
+	function onDisconnectMe( object message ) {
 		if( .active ) {
 			Game.setState(Game.menuState());
 		}
 	}
-	function onNewUser( object message ) {
+	function onNewPlayer( object message ) {
 		if( .active ) {
 			boolean me = false;
 			if( not .connected ) {
