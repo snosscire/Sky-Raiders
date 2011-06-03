@@ -92,22 +92,57 @@ FE_NATIVE_FUNCTION( game_engine_next_event )
 				key_variable = ferite_create_number_long_variable(script, "key", event.key.keysym.sym, FE_STATIC);
 				mod_variable = ferite_create_number_long_variable(script, "mod", event.key.keysym.mod, FE_STATIC);
 				unicode_variable = ferite_create_number_long_variable(script, "unicode", event.key.keysym.unicode, FE_STATIC);
-				MARK_VARIABLE_AS_DISPOSABLE(type_variable);
-				MARK_VARIABLE_AS_DISPOSABLE(key_variable);
-				MARK_VARIABLE_AS_DISPOSABLE(mod_variable);
-				MARK_VARIABLE_AS_DISPOSABLE(unicode_variable);
 				ferite_object_set_var(script, VAO(event_variable), "type", type_variable);
 				ferite_object_set_var(script, VAO(event_variable), "key", key_variable);
 				ferite_object_set_var(script, VAO(event_variable), "mod", mod_variable);
 				ferite_object_set_var(script, VAO(event_variable), "unicode", unicode_variable);
 				break;
 			}
+			case SDL_MOUSEBUTTONDOWN:
+			case SDL_MOUSEBUTTONUP:
+			{
+				FeriteNamespaceBucket *nsb = ferite_find_namespace(script, self, "MouseButtonEvent", FENS_CLS);
+				FeriteVariable *type_variable = NULL;
+				FeriteVariable *button_variable = NULL;
+				FeriteVariable *x_variable = NULL;
+				FeriteVariable *y_variable = NULL;
+				event_variable = ferite_build_object(script, nsb->data);
+				type_variable = ferite_create_number_long_variable(script, "type", event.type, FE_STATIC);
+				button_variable = ferite_create_number_long_variable(script, "button", event.button.button, FE_STATIC);
+				x_variable = ferite_create_number_long_variable(script, "x", event.button.x, FE_STATIC);
+				y_variable = ferite_create_number_long_variable(script, "y", event.button.y, FE_STATIC);
+				ferite_object_set_var(script, VAO(event_variable), "type", type_variable);
+				ferite_object_set_var(script, VAO(event_variable), "button", button_variable);
+				ferite_object_set_var(script, VAO(event_variable), "x", x_variable);
+				ferite_object_set_var(script, VAO(event_variable), "y", y_variable);
+				break;
+			}
+			case SDL_MOUSEMOTION:
+			{
+				FeriteNamespaceBucket *nsb = ferite_find_namespace(script, self, "MouseMotionEvent", FENS_CLS);
+				FeriteVariable *type_variable = NULL;
+				FeriteVariable *x_variable = NULL;
+				FeriteVariable *y_variable = NULL;
+				FeriteVariable *xrel_variable = NULL;
+				FeriteVariable *yrel_variable = NULL;
+				event_variable = ferite_build_object(script, nsb->data);
+				type_variable = ferite_create_number_long_variable(script, "type", event.type, FE_STATIC);
+				x_variable = ferite_create_number_long_variable(script, "x", event.motion.x, FE_STATIC);
+				y_variable = ferite_create_number_long_variable(script, "y", event.motion.y, FE_STATIC);
+				xrel_variable = ferite_create_number_long_variable(script, "xrel", event.motion.xrel, FE_STATIC);
+				yrel_variable = ferite_create_number_long_variable(script, "yrel", event.motion.yrel, FE_STATIC);
+				ferite_object_set_var(script, VAO(event_variable), "type", type_variable);
+				ferite_object_set_var(script, VAO(event_variable), "x", x_variable);
+				ferite_object_set_var(script, VAO(event_variable), "y", y_variable);
+				ferite_object_set_var(script, VAO(event_variable), "xrel", xrel_variable);
+				ferite_object_set_var(script, VAO(event_variable), "yrel", yrel_variable);
+				break;				
+			}
 			case SDL_QUIT:
 			{
 				FeriteNamespaceBucket *nsb = ferite_find_namespace(script, self, "QuitEvent", FENS_CLS);
 				FeriteVariable *type_variable = ferite_create_number_long_variable(script, "type", event.type, FE_STATIC);
 				event_variable = ferite_build_object(script, nsb->data);
-				MARK_VARIABLE_AS_DISPOSABLE(type_variable);
 				ferite_object_set_var(script, VAO(event_variable), "type", type_variable);
 				break;
 			}
@@ -230,6 +265,28 @@ FE_NATIVE_FUNCTION( game_engine_draw_image )
 	FE_RETURN_VOID;
 }
 
+FE_NATIVE_FUNCTION( game_engine_draw_rectangle )
+{
+	double x = 0.0;
+	double y = 0.0;
+	double w = 0.0;
+	double h = 0.0;
+	double r = 0.0;
+	double g = 0.0;
+	double b = 0.0;
+	ferite_get_parameters(params, 7, &x, &y, &w, &h, &r, &g, &b);
+	if( screen )
+	{
+		SDL_Rect rect;
+		rect.x = x;
+		rect.y = y;
+		rect.w = w;
+		rect.h = h;
+		SDL_FillRect(screen, &rect, SDL_MapRGB(screen->format, r, g, b));
+	}
+	FE_RETURN_VOID;
+}
+
 FE_NATIVE_FUNCTION( game_engine_sin )
 {
 	double number = 0.0;
@@ -262,7 +319,10 @@ void game_engine_init( FeriteScript *script )
 	FeriteVariable *event_keyup_variable = ferite_create_number_long_variable(script, "EVENT_KEYUP", SDL_KEYUP, FE_STATIC);
 	FeriteVariable *event_mousebuttondown_variable = ferite_create_number_long_variable(script, "EVENT_MOUSEBUTTONDOWN", SDL_MOUSEBUTTONDOWN, FE_STATIC);
 	FeriteVariable *event_mousebuttonup_variable = ferite_create_number_long_variable(script, "EVENT_MOUSEBUTTONUP", SDL_MOUSEBUTTONUP, FE_STATIC);
+	FeriteVariable *event_mousemotion_variable = ferite_create_number_long_variable(script, "EVENT_MOUSEMOTION", SDL_MOUSEMOTION, FE_STATIC);
 	FeriteVariable *event_quit_variable = ferite_create_number_long_variable(script, "EVENT_QUIT", SDL_QUIT, FE_STATIC);
+	
+	FeriteVariable *button_left_variable = ferite_create_number_long_variable(script, "BUTTON_LEFT", SDL_BUTTON_LEFT, FE_STATIC);
 	
 	FeriteFunction *sin_function = ferite_create_external_function(script, "sin", game_engine_sin, "n");
 	FeriteFunction *cos_function = ferite_create_external_function(script, "cos", game_engine_cos, "n");
@@ -277,6 +337,7 @@ void game_engine_init( FeriteScript *script )
 	FeriteFunction *screen_width_function = ferite_create_external_function(script, "screenWidth", game_engine_screen_width, "");
 	FeriteFunction *screen_height_function = ferite_create_external_function(script, "screenHeight", game_engine_screen_height, "");
 	FeriteFunction *current_working_directory_function = ferite_create_external_function(script, "currentWorkingDirectory", game_engine_current_working_directory, "");
+	FeriteFunction *draw_rectangle_function = ferite_create_external_function(script, "drawRectangle", game_engine_draw_rectangle, "nnnnnnn");
 
 	ferite_register_inherited_class(script, engine_namespace, "KeyboardEvent", NULL);
 	ferite_register_inherited_class(script, engine_namespace, "MouseButtonEvent", NULL);
@@ -287,7 +348,11 @@ void game_engine_init( FeriteScript *script )
 	ferite_register_ns_variable(script, engine_namespace, "EVENT_KEYUP", event_keyup_variable);
 	ferite_register_ns_variable(script, engine_namespace, "EVENT_MOUSEBUTTONDOWN", event_mousebuttondown_variable);
 	ferite_register_ns_variable(script, engine_namespace, "EVENT_MOUSEBUTTONUP", event_mousebuttonup_variable);
+	ferite_register_ns_variable(script, engine_namespace, "EVENT_MOUSEMOTION", event_mousemotion_variable);
 	ferite_register_ns_variable(script, engine_namespace, "EVENT_QUIT", event_quit_variable);
+	
+	// SDL_BUTTON_LEFT, SDL_BUTTON_MIDDLE, SDL_BUTTON_RIGHT, SDL_BUTTON_WHEELUP, SDL_BUTTON_WHEELDOWN
+	ferite_register_ns_variable(script, engine_namespace, "BUTTON_LEFT", button_left_variable);
 	
 	ferite_register_ns_function(script, engine_namespace, sin_function);
 	ferite_register_ns_function(script, engine_namespace, cos_function);
@@ -302,6 +367,7 @@ void game_engine_init( FeriteScript *script )
 	ferite_register_ns_function(script, engine_namespace, screen_width_function);
 	ferite_register_ns_function(script, engine_namespace, screen_height_function);
 	ferite_register_ns_function(script, engine_namespace, current_working_directory_function);
+	ferite_register_ns_function(script, engine_namespace, draw_rectangle_function);
 	
 	game_engine_key_init(script, engine_namespace);
 	game_engine_image_init(script, engine_namespace);

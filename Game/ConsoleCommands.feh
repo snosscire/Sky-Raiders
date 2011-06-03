@@ -1,5 +1,8 @@
 class Game {
 	static function registerConsoleCommands() {
+		Console.registerCommand('start_test', closure( parameters ) {
+			Game.setState(Game.testState());
+		});
 		Console.registerCommand('connect', closure( parameters ) {
 			if( parameters.size() <= 2 ) {
 				string host = (parameters.size() >= 1 ? parameters[0] : 'localhost');
@@ -33,6 +36,14 @@ class Game {
 		Console.registerCommand('msg_enable', closure( parameters ) {
 			MessageHandler.active = true;
 			Console.printLine("messagehandler status... ${MessageHandler.active}");
+		});
+		Console.registerCommand('show_collision_rects', closure( parameters ) {
+			Game.showCollisionRectangles = true;
+			Console.printLine("collision rectangles status... ${Game.showCollisionRectangles}");
+		});
+		Console.registerCommand('hide_collision_rects', closure( parameters ) {
+			Game.showCollisionRectangles = false;
+			Console.printLine("collision rectangles status... ${Game.showCollisionRectangles}");
 		});
 	}
 }

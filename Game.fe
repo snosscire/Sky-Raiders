@@ -22,10 +22,14 @@ class modifies Game {
 	static boolean running;
 	
 	static object menuState;
+	static object testState;
 	static object multiplayerState;
 	static object currentState;
 	
 	static array players;
+	
+	static boolean showFPS = false;
+	static boolean showCollisionRectangles = false;
 	
 	static function run() {
 		if( not .running ) {
@@ -108,7 +112,8 @@ class modifies Game {
 				.currentState.draw();
 				Console.draw();
 				
-				font.drawText("$framesPerSecond", Engine.screenWidth() - font.textWidth("$framesPerSecond") - 5, 5);
+				Game.showFPS and font.drawText("$framesPerSecond", Engine.screenWidth() - font.textWidth("$framesPerSecond") - 5, 5);
+				
 				Engine.updateScreen();
 			}
 			
@@ -125,6 +130,11 @@ class modifies Game {
 		if( not .menuState )
 			.menuState = new MenuState();
 		return .menuState;
+	}
+	static function testState() {
+		if( not .testState )
+			.testState = new TestState();
+		return .testState;
 	}
 	static function multiplayerState() {
 		if( not .multiplayerState )

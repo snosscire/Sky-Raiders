@@ -36,9 +36,9 @@ class MapLayer {
 	number imageY;
 	object image;
 	function unload() {
-		if( .image ) {
+		/*if( .image ) {
 			Engine.unloadImageResource(.image);
-		}
+		}*/
 	}
 	function draw( number changeX, number changeY ) {
 		.imageX = .imageX + (changeX * .speed);
@@ -137,9 +137,9 @@ class Map {
 		return null;
 	}
 	function unload() {
-		.layers.each() using ( layer ) {
+		/*.layers.each() using ( layer ) {
 			layer.unload();
-		};
+		};*/
 	}
 	function getWidth() {
 		return .width;

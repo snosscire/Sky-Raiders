@@ -1,4 +1,4 @@
-class Menu {
+ class Menu {
 	static final number ITEM_PADDING = 2;
 	boolean active;
 	array items;
@@ -103,6 +103,171 @@ class TextMenuItem extends MenuItem {
 	function select() {
 	}
 	function deselect() {
+	}
+}
+
+class ImageMenu {
+	boolean active;
+	object image;
+	array items;
+	function setImage( string name ) {
+		.image = Engine.loadImageResource("GUI/${name}");
+	}
+	function setActive( boolean active ) {
+		.active = active;
+	}
+	function addInvisibleButton( string name, number x, number y, number width, number height ) {
+		object button = new InvisibleButtonMenuItem();
+		button.menu = self;
+		button.x = x;
+		button.y = y;
+		button.width = width;
+		button.height = height;
+		button.block = recipient();
+		.items[name] = button;
+	}
+	function addInvisibleCheckBox( string name, number x, number y, number width, number height, boolean checked ) {
+		object checkbox = new InvisibleCheckBoxMenuItem();
+		checkbox.menu = self;
+		checkbox.x = x;
+		checkbox.y = y;
+		checkbox.width = width;
+		checkbox.height = height;
+		checkbox.block = recipient();
+		checkbox.checked = checked;
+		.items[name] = checkbox;
+	}
+	function addInvisibleSlider( string name, number x, number y, number width, number height ) {
+		object slider = new InvisibleSliderMenuItem();
+		slider.menu = self;
+		slider.x = x;
+		slider.y = y;
+		slider.width = width;
+		slider.height = height;
+		slider.buttonX = x;
+		slider.buttonY = y;
+		.items[name] = slider;
+	}
+	function getItem( string name ) {
+		if( .items.keyExists(name) )
+			return .items[name];
+		return null;
+	}
+	function registerListeners() {
+		.items.each() using ( item ) {
+			EventHandler.registerListener(Engine.EVENT_MOUSEBUTTONDOWN, item);
+			EventHandler.registerListener(Engine.EVENT_MOUSEBUTTONUP, item);
+			EventHandler.registerListener(Engine.EVENT_MOUSEMOTION, item);
+		};
+	}
+	function draw() {
+		.image and Engine.drawImage(.image, 0, 0);
+		.items.each() using ( item ) {
+			item.draw();
+		};
+	}
+}
+
+class InvisibleMenuItem {
+	function onButtonDown( object event );
+	function onButtonUp( object event );
+	function onMouseMotion( object event );
+}
+
+class InvisibleButtonMenuItem extends InvisibleMenuItem {
+	object menu;
+	number x;
+	number y;
+	number width;
+	number height;
+	object block;
+	function draw() {
+		//Engine.drawRectangle(.x, .y, .width, .height, 255, 0, 0);
+	}
+	function onButtonDown( object event ) {
+		if( .menu.active and (not Console.active) ) {
+			if( event.button == Engine.BUTTON_LEFT ) {
+				if( event.x >= .x and event.x <= (.x + .width) and event.y >= .y and event.y <= (.y + .height) ) {
+					.block and .block.invoke();
+				}
+			}
+		}
+	}
+}
+
+class InvisibleCheckBoxMenuItem extends InvisibleMenuItem {
+	object menu;
+	number x;
+	number y;
+	number width;
+	number height;
+	object block;
+	object cross;
+	boolean checked;
+	constructor {
+		.cross = Engine.loadImageResource("GUI/cross.png");
+	}
+	function draw() {
+		//Engine.drawRectangle(.x, .y, .width, .height, 255, 0, 0);
+		.checked and Engine.drawImage(.cross, .x + 2, .y + 1);
+	}
+	function onButtonDown( object event ) {
+		if( .menu.active and (not Console.active) ) {
+			if( event.button == Engine.BUTTON_LEFT ) {
+				if( event.x >= .x and event.x <= (.x + .width) and event.y >= .y and event.y <= (.y + .height) ) {
+					.checked = (not .checked);
+					.block and .block.invoke();
+				}
+			}
+		}
+	}
+}
+
+class InvisibleSliderMenuItem extends InvisibleMenuItem {
+	object menu;
+	number x;
+	number y;
+	number width;
+	number height;
+	object block;
+	object button;
+	number buttonX;
+	number buttonY;
+	boolean holdingButton;
+	
+	constructor {
+		.button = Engine.loadImageResource("GUI/slider_button.png");
+	}
+	
+	function draw() {
+		Engine.drawImage(.button, .buttonX + 1, .buttonY + 1);
+	}
+	
+	function onButtonDown( object event ) {
+		if( .menu.active and (not Console.active) ) {
+			if( event.button == Engine.BUTTON_LEFT ) {
+				if( event.x >= .buttonX and event.x <= (.buttonX + .button.width()) and event.y >= .buttonY and event.y <= (.buttonY + .button.height()) ) {
+					.holdingButton = true;
+				}
+			}
+		}
+	}
+	function onButtonUp( object event ) {
+		if( .menu.active and (not Console.active) ) {
+			if( event.button == Engine.BUTTON_LEFT ) {
+				.holdingButton = false;
+			}
+		}
+	}
+	function onMouseMotion( object event ) {
+		if( .menu.active and (not Console.active) and .holdingButton ) {
+			number newButtonX = .buttonX + event.xrel;
+			number left = .x;
+			number right = .x + .width - .button.width() - 1;
+			if( newButtonX > left and newButtonX < right ) {
+				.buttonX = newButtonX;
+			}
+		}
 	}
 }
 

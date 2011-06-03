@@ -14,9 +14,12 @@ namespace EventHandler {
 			if( .eventListeners.keyExists("${event.type}") ) {
 				.eventListeners["${event.type}"].each() using ( listener ) {
 					switch( event.type ) {
-						case Engine.EVENT_KEYDOWN: listener.onKeyDown(event); break;
-						case Engine.EVENT_KEYUP:   listener.onKeyUp(event); break;
-						case Engine.EVENT_QUIT:    listener.onQuit(event); break;
+						case Engine.EVENT_KEYDOWN:         listener.onKeyDown(event); break;
+						case Engine.EVENT_KEYUP:           listener.onKeyUp(event); break;
+						case Engine.EVENT_MOUSEBUTTONDOWN: listener.onButtonDown(event); break;
+						case Engine.EVENT_MOUSEBUTTONUP:   listener.onButtonUp(event); break;
+						case Engine.EVENT_MOUSEMOTION:     listener.onMouseMotion(event); break;
+						case Engine.EVENT_QUIT:            listener.onQuit(event); break;
 					}
 				};
 			}

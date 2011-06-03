@@ -27,7 +27,8 @@ class Rectangle {
 		.x = x;
 		.y = y;
 		.width = width;
-		.height = .height;
+		.height = height;
+		.recalculate();
 	}
 	function recalculate() {
 		.left = .x;
@@ -89,11 +90,10 @@ class Player extends Entity {
 	
 	object controller;
 	
-	object collisionRectangle;
-	
 	array smokePuffs;
 	number nextSmokePuff;
 	
+	object hitExplosion;
 	object deathExplosion;
 	
 	object weapon;
@@ -108,6 +108,7 @@ class Player extends Entity {
 		for( number i = 0; i < Global.PlayerSmokePuffOnScreenAmount; i++ ) {
 			.smokePuffs[] = new SmokePuff();
 		}
+		.hitExplosion = new HitExplosion();
 		.deathExplosion = new DeathExplosion();
 	}
 	
@@ -120,6 +121,8 @@ class Player extends Entity {
 			number radianAngle;
 			number gravityPercentage = 0.0;
 			number deltaSpeed;
+			
+			.hitExplosion.update(deltaTime);
 			
 			if( Time.current >= .nextSmokePuff ) {
 				for( number i = 0; i < Global.PlayerSmokePuffOnScreenAmount; i++ ) {
@@ -191,6 +194,10 @@ class Player extends Entity {
 				.speed = 0.0;
 			}
 			
+			if( .bottom <= 0 ) {
+				.stalling = true;
+			}
+			
 			if( .bottom >= currentMap.getHeight() ) {
 				.takeDamage(100);
 			}
@@ -210,10 +217,12 @@ class Player extends Entity {
 			.angle = Global.PlayerStartAngle;
 			.spriteAngle = Global.PlayerStartAngle;
 			.health = Global.PlayerStartHealth;
+			.stalling = false;
 		}
 	}
 	
 	function draw( object playerCamera, object currentMap ) {
+		.weapon and .weapon.draw(playerCamera);
 		if( .me or (.x >= playerCamera.left and .x <= playerCamera.right and .y >= playerCamera.top and .y <= playerCamera.bottom) ) {
 			//.smokePuffs.each() using ( smokePuff ) {
 			//	smokePuff.draw(playerCamera);
@@ -222,7 +231,6 @@ class Player extends Entity {
 				number x;
 				number y;
 				object rotatedSprite;
-				.weapon and .weapon.draw(playerCamera);
 				if( .me ) {
 					if( playerCamera.left == 0 or playerCamera.right == currentMap.getWidth() ) {
 						x = .x - playerCamera.left;
@@ -248,8 +256,30 @@ class Player extends Entity {
 					Engine.drawImage(.rotatedSprite, x - (.rotatedSprite.width() / 2), y - (.rotatedSprite.height() / 2));
 					Engine.loadFont(Global.FontConsole, 10, 10, -2).drawText("${.id}", x, y);
 				}
+				.hitExplosion.draw(playerCamera);
 			}
 			.deathExplosion.draw(playerCamera);
+			if( Game.showCollisionRectangles ) {
+				object o = .collisionObject();
+				number x;
+				number y;
+				if( .me ) {
+					if( playerCamera.left == 0 or playerCamera.right == currentMap.getWidth() ) {
+						x = o.x - playerCamera.left;
+					} else {
+						x = Engine.screenWidth() / 2;
+					}
+					if( playerCamera.top == 0 || playerCamera.bottom == currentMap.getHeight() ) {
+						y = o.y - playerCamera.top;
+					} else {
+						y = Engine.screenHeight() / 2;
+					}
+				} else {
+					x = o.x - playerCamera.left;
+					y = o.y - playerCamera.top;
+				}
+				Engine.drawRectangle(x, y, o.width, o.height, 255, 0, 0);
+			}
 		}
 	}
 	
@@ -263,9 +293,16 @@ class Player extends Entity {
 		return .shotWeapon;
 	}
 	
+	object collisionRectangle;
 	function collisionObject() {
-		//return new Rectangle(.x - (.halfWidth), .y - (.halfHeight), .sprite.width(), .sprite.height());
-		return self;
+		if( not .collisionRectangle )
+			.collisionRectangle = new Rectangle();
+		.collisionRectangle.x = .x - (.sprite.width() / 4);
+		.collisionRectangle.y = .y - (.sprite.height() / 4);
+		.collisionRectangle.width = (.sprite.width() / 2);
+		.collisionRectangle.height = (.sprite.height() / 2);
+		.collisionRectangle.recalculate();
+		return .collisionRectangle;
 	}
 	function collide( object o ) {
 		if( .health > 0.0 ) {
@@ -276,10 +313,14 @@ class Player extends Entity {
 
 	number timeOfDeath;
 	function takeDamage( number damage ) {
-		.health -= damage;
-		if( .health <= 0.0 ) {
-			.timeOfDeath = Time.current;
-			.deathExplosion.init(.x, .y);
+		if( .health > 0 ) {
+			.health -= damage;
+			if( .health <= 0.0 ) {
+				.timeOfDeath = Time.current;
+				.deathExplosion.init(.x, .y);
+			} else {
+				.hitExplosion.init(.x, .y);
+			}
 		}
 	}
 }
@@ -396,3 +437,40 @@ class DeathExplosion extends Entity {
 	}
 }
 
+class HitExplosion extends Entity {
+	object sprite;
+	number zoom;
+	number growTime;
+	number shrinkTime;
+	number currentGrowTime;
+	number currentShrinkTime;
+	constructor {
+		.sprite = Engine.loadImageResource(Global.PlayerHitExplosionSprite);
+	}
+	function init( number x, number y ) {
+		.x = x;
+		.y = y;
+		.growTime = Global.PlayerHitExplosionGrowTime;
+		.shrinkTime = Global.PlayerHitExplosionShrinkTime;
+		.currentGrowTime = .growTime;
+		.currentShrinkTime = .shrinkTime;
+	}
+	function update( number deltaTime ) {
+		if( .currentGrowTime > 0 ) {
+			.zoom = ((.growTime - .currentGrowTime) + 0.0) / (.growTime + 0.0);
+			.currentGrowTime -= deltaTime;
+		} else if( .currentShrinkTime > 0 ) {
+			.zoom = (.currentShrinkTime + 0.0) / (.shrinkTime + 0.0);
+			.currentShrinkTime -= deltaTime;
+		}
+	}
+	function draw( object playerCamera ) {
+		if( .currentGrowTime > 0 or .currentShrinkTime > 0 ) {
+			number x = .x - playerCamera.left;
+			number y = .y - playerCamera.top;
+			object zoomedImage = .sprite.rotate(0, .zoom, false);
+			Engine.drawImage(zoomedImage, x - (zoomedImage.width() / 2), y - (zoomedImage.height() / 2));
+			zoomedImage.unload();
+		}
+	}
+}

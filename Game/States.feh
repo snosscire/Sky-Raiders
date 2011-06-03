@@ -209,7 +209,7 @@ class MultiplayerState extends State {
 	}
 }
 
-class MenuState extends State {
+class OldMenuState extends State {
 	object mainMenu;
 	object multiplayerMenu;
 	object currentMenu;
@@ -255,6 +255,111 @@ class MenuState extends State {
 			if( event.key == Engine.KEY_ESCAPE ) {
 				if( .currentMenu == .mainMenu ) {
 					Game.quit();
+				}
+			}
+		}
+	}
+}
+
+class MenuState extends State {
+	object mainMenu;
+	object startMenu;
+	object joinMenu;
+	object settingsMenu;
+	object currentMenu;
+	function init() {
+		.mainMenu = new ImageMenu();
+		.mainMenu.setImage("main_menu_indexed.png");
+		.mainMenu.addInvisibleButton("StartButton", 500, 108, 250, 100) using {
+			.currentMenu.setActive(false);
+			.startMenu.setActive(true);
+			.currentMenu = .startMenu;
+		};
+		.mainMenu.addInvisibleButton("JoinButton", 500, 241, 250, 100) using {
+			.currentMenu.setActive(false);
+			.joinMenu.setActive(true);
+			.currentMenu = .joinMenu;
+		};
+		.mainMenu.addInvisibleButton("SettingsButton", 500, 374, 250, 100) using {
+			.currentMenu.setActive(false);
+			.settingsMenu.setActive(true);
+			.currentMenu = .settingsMenu;
+		};
+		.mainMenu.addInvisibleButton("QuitButton", 500, 507, 250, 100) using {
+			Game.quit();
+		};
+		
+		.startMenu = new ImageMenu();
+		.startMenu.setImage("create_menu_indexed.png");
+
+		.joinMenu = new ImageMenu();
+		.joinMenu.setImage("join_menu_indexed.png");
+
+		.settingsMenu = new ImageMenu();
+		.settingsMenu.setImage("settings_menu_indexed.png");
+		// show fps
+		.settingsMenu.addInvisibleCheckBox("ShowFpsCheckBox", 547, 459, 32, 29, false) using {
+			// Do nothing
+		};
+		// low quality
+		.settingsMenu.addInvisibleCheckBox("LowQualityCheckBox", 915, 459, 32, 29, false) using {
+			Console.printLine('click');
+		};
+		// windowed mode
+		.settingsMenu.addInvisibleCheckBox("WindowedModeCheckBox", 675, 520, 32, 29, (not Global.DefaultFullScreenState)) using {
+			Console.printLine('click');
+		};
+		// back
+		.settingsMenu.addInvisibleButton("BackButton", 212, 585, 250, 100) using {
+			.currentMenu.setActive(false);
+			.mainMenu.setActive(true);
+			.currentMenu = .mainMenu;
+		};
+		// ok
+		.settingsMenu.addInvisibleButton("OkButton", 817, 585, 250, 100) using {
+			Engine.setScreen(Global.DefaultScreenWidth, Global.DefaultScreenHeight, (not .settingsMenu.getItem("WindowedModeCheckBox").checked));
+			Game.showFPS = .settingsMenu.getItem("ShowFpsCheckBox").checked;
+			.currentMenu.setActive(false);
+			.mainMenu.setActive(true);
+			.currentMenu = .mainMenu;
+		};
+		// aspect ratio
+		.settingsMenu.addInvisibleSlider("AspectRatioSlider", 275, 304, 730, 27);
+		// resolution
+		.settingsMenu.addInvisibleSlider("ScreenResolutionSlider", 275, 398, 730, 27);
+		
+		.currentMenu = .mainMenu;
+		.currentMenu.setActive(true);
+		
+		.active = true;
+		
+		if( not .listenersRegistered ) {
+			EventHandler.registerListener(Engine.EVENT_KEYDOWN, self);
+			.mainMenu.registerListeners();
+			.startMenu.registerListeners();
+			.joinMenu.registerListeners();
+			.settingsMenu.registerListeners();
+			.listenersRegistered = true;
+		}
+	}
+	function quit() {
+		.active = false;
+	}
+	function update() {
+	
+	}
+	function draw() {
+		.currentMenu and .currentMenu.draw();
+	}
+	function onKeyDown( object event ) {
+		if( .active and (not Console.active) ) {
+			if( event.key == Engine.KEY_ESCAPE ) {
+				if( .currentMenu == .mainMenu ) {
+					Game.quit();
+				} else {
+					.currentMenu.setActive(false);
+					.mainMenu.setActive(true);
+					.currentMenu = .mainMenu;
 				}
 			}
 		}

@@ -12,19 +12,23 @@ namespace Global {
 	 * Player
 	 *************************************************************************/
 	string PlayerSprite = "ssh-askpass-gnome.png";
-	number PlayerSpeed = 1.8;
-	number PlayerTurningSpeed = 1.0;
+	number PlayerSpeed = 2.3;
+	number PlayerTurningSpeed = 1.2;
 	number PlayerStartX = 200;
 	number PlayerStartY = 100;
 	number PlayerStartAngle = 0.0;
-	number PlayerStartHealth = 100.0;
+	number PlayerStartHealth = 400.0;
 	number PlayerRespawnTime = 2000;
 	/********* Smoke Puffs **********/
 	string PlayerSmokePuffSprite = "smoke.png";
 	number PlayerSmokePuffOnScreenAmount = 20;
 	number PlayerSmokePuffAppearInterval = 100;
 	number PlayerSmokePuffLifeTime = 2000;
-	/********* Explosion **********/
+	/********* Hit Explosion **********/
+	string PlayerHitExplosionSprite = "hit_explosion.png";
+	number PlayerHitExplosionGrowTime = 12;
+	number PlayerHitExplosionShrinkTime = 62;
+	/********* Death Explosion **********/
 	string PlayerExplosionSprite = "explosion.png";
 	number PlayerExplosionGrowTime = 25;
 	number PlayerExplosionShrinkTime = 125;
@@ -39,7 +43,7 @@ namespace Global {
 	/********* Machine Gun **********/
 	string MachineGunBulletSprite = "bullet.png";
 	number MachineGunBulletOnScreenAmount = 100;
-	number MachineGunBulletSpeed = 4.0;
+	number MachineGunBulletSpeed = 5.0;
 	number MachineGunBulletDamage = 50.0;
 	/*************************************************************************
 	 * Server
@@ -65,29 +69,29 @@ Global.Maps["Test"] = [
 			"screen-y" => 0,
 			"level"    => -5,
 			"speed"    => 0.2,
-			"image"    => "enviorment/sky_test2.bmp"
+			"image"    => "enviorment/sky_BG.png"
 		],
 		[
 			"screen-x" => 0,
-			"screen-y" => -538,
+			"screen-y" => -341,
 			"level"    => -4,
 			"speed"    => 0.4,
-			"image"    => "enviorment/mountains_back.bmp",
-			"alpha"    => [ "red" => 253, "green" => 203, "blue" => 203 ]
+			"image"    => "enviorment/mountains_back.png"
+			//"alpha"    => [ "red" => 253, "green" => 203, "blue" => 203 ]
 		],
 		[
 			"screen-x" => 0,
-			"screen-y" => -138,
+			"screen-y" => -80,
 			"level"    => -3,
 			"speed"    => 0.6,
-			"image"    => "enviorment/mid_hills_small.png"
+			"image"    => "enviorment/hills_mid.png"
 		],
 		[
 			"screen-x" => 0,
-			"screen-y" => -58,
+			"screen-y" => -36,
 			"level"    => -1,
 			"speed"    => 1.0,
-			"image"    => "enviorment/ground_bottom_small.png"
+			"image"    => "enviorment/ground_bottom.png"
 		],
 		[
 			"screen-x" => 0,
