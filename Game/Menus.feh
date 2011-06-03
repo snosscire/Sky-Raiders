@@ -152,6 +152,7 @@ class ImageMenu {
 	}
 	function addImage( string name, number x, number y ) {
 		object image = new MenuImage();
+		image.menu = self;
 		image.x = x;
 		image.y = y;
 		.items[name] = image;
@@ -171,7 +172,7 @@ class ImageMenu {
 		};
 	}
 	function draw() {
-		.image and Engine.drawImage(.image, 0, 0);
+		.image and Engine.drawImage(.image, ((Engine.screenWidth() - .image.width()) / 2), 0);
 		.items.each() using ( item ) {
 			item.draw();
 		};
@@ -193,12 +194,13 @@ class InvisibleButtonMenuItem extends InvisibleMenuItem {
 	number height;
 	object block;
 	function draw() {
-		//Engine.drawRectangle(.x, .y, .width, .height, 255, 0, 0);
+		//Engine.drawRectangle(.x + ((Engine.screenWidth() - .menu.image.width()) / 2), .y, .width, .height, 255, 0, 0);
 	}
 	function onButtonDown( object event ) {
 		if( .menu.active and (not Console.active) ) {
 			if( event.button == Engine.BUTTON_LEFT ) {
-				if( event.x >= .x and event.x <= (.x + .width) and event.y >= .y and event.y <= (.y + .height) ) {
+				number x = .x + ((Engine.screenWidth() - .menu.image.width()) / 2);
+				if( event.x >= x and event.x <= (x + .width) and event.y >= .y and event.y <= (.y + .height) ) {
 					.block and .block.invoke();
 				}
 			}
@@ -219,13 +221,14 @@ class InvisibleCheckBoxMenuItem extends InvisibleMenuItem {
 		.cross = Engine.loadImageResource("GUI/cross.png");
 	}
 	function draw() {
-		//Engine.drawRectangle(.x, .y, .width, .height, 255, 0, 0);
-		.checked and Engine.drawImage(.cross, .x + 2, .y + 1);
+		//Engine.drawRectangle(.x + ((Engine.screenWidth() - .menu.image.width()) / 2), .y, .width, .height, 255, 0, 0);
+		.checked and Engine.drawImage(.cross, .x + 2 + ((Engine.screenWidth() - .menu.image.width()) / 2), .y + 1);
 	}
 	function onButtonDown( object event ) {
 		if( .menu.active and (not Console.active) ) {
 			if( event.button == Engine.BUTTON_LEFT ) {
-				if( event.x >= .x and event.x <= (.x + .width) and event.y >= .y and event.y <= (.y + .height) ) {
+				number x = .x + ((Engine.screenWidth() - .menu.image.width()) / 2);
+				if( event.x >= x and event.x <= (x + .width) and event.y >= .y and event.y <= (.y + .height) ) {
 					.checked = (not .checked);
 					.block and .block.invoke();
 				}
@@ -235,13 +238,14 @@ class InvisibleCheckBoxMenuItem extends InvisibleMenuItem {
 }
 
 class MenuImage {
+	object menu;
 	number x;
 	number y;
 	object image;
 	boolean registerListeners = false;
 	function draw() {
-		Engine.drawRectangle(.x, .y, 10, 10, 255, 0, 0);
-		.image and Engine.drawImage(.image, .x, .y);
+		Engine.drawRectangle(.x + ((Engine.screenWidth() - .menu.image.width()) / 2), .y, 10, 10, 255, 0, 0);
+		.image and Engine.drawImage(.image, .x + ((Engine.screenWidth() - .menu.image.width()) / 2), .y);
 	}
 	function setImage( string path ) {
 		.image = Engine.loadImageResource(path);
@@ -267,13 +271,14 @@ class InvisibleSliderMenuItem extends InvisibleMenuItem {
 	}
 	
 	function draw() {
-		Engine.drawImage(.button, .buttonX + 1, .buttonY + 1);
+		Engine.drawImage(.button, .buttonX + 1 + ((Engine.screenWidth() - .menu.image.width()) / 2), .buttonY + 1);
 	}
 	
 	function onButtonDown( object event ) {
 		if( .menu.active and (not Console.active) ) {
 			if( event.button == Engine.BUTTON_LEFT ) {
-				if( event.x >= .buttonX and event.x <= (.buttonX + .button.width()) and event.y >= .buttonY and event.y <= (.buttonY + .button.height()) ) {
+				number buttonX = .buttonX + ((Engine.screenWidth() - .menu.image.width()) / 2);
+				if( event.x >= buttonX and event.x <= (buttonX + .button.width()) and event.y >= .buttonY and event.y <= (.buttonY + .button.height()) ) {
 					.holdingButton = true;
 				}
 			}
