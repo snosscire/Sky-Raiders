@@ -28,8 +28,8 @@ class Camera {
 }
 
 class MapLayer {
-	number screenX;
-	number screenY;
+	number x;
+	number y;
 	number level;
 	number speed;
 	number imageX;
@@ -40,10 +40,10 @@ class MapLayer {
 			Engine.unloadImageResource(.image);
 		}*/
 	}
-	function draw( number changeX, number changeY ) {
-		.imageX = .imageX + (changeX * .speed);
-		.imageY = .imageY + changeY;
-		Engine.drawImage(.image, .screenX, .screenY, .imageX, .imageY, Engine.screenWidth(), Engine.screenHeight());
+	function draw( number changeX, number changeY, object playerCamera ) {
+		number screenX = (.x - playerCamera.left) * .speed;
+		number screenY = .y - playerCamera.top;
+		Engine.drawImage(.image, screenX, screenY, 0, 0, 0, 0);
 	}
 }
 
@@ -118,8 +118,10 @@ class Map {
 			map.layers = [];
 			Global.Maps[name]['layers'].each() using ( layerConfig ) {
 				object layer = new MapLayer();
-				layer.screenX = (layerConfig['screen-x'] >= 0 ? layerConfig['screen-x'] : Engine.screenWidth() + layerConfig['screen-x']);
-				layer.screenY = (layerConfig['screen-y'] >= 0 ? layerConfig['screen-y'] : Engine.screenHeight() + layerConfig['screen-y']);
+				/*layer.screenX = (layerConfig['screen-x'] >= 0 ? layerConfig['screen-x'] : Engine.screenWidth() + layerConfig['screen-x']);
+				layer.screenY = (layerConfig['screen-y'] >= 0 ? layerConfig['screen-y'] : Engine.screenHeight() + layerConfig['screen-y']);*/
+				layer.x = (layerConfig['screen-x'] >= 0 ? layerConfig['screen-x'] : map.width + layerConfig['screen-x']);
+				layer.y = (layerConfig['screen-y'] >= 0 ? layerConfig['screen-y'] : map.height + layerConfig['screen-y']);
 				layer.level = layerConfig['level'];
 				layer.speed = layerConfig['speed'];
 				layer.image = Engine.loadImageResource(layerConfig['image']);
@@ -153,17 +155,17 @@ class Map {
 		.lastCameraLeft = playerCamera.left;
 		.lastCameraTop = playerCamera.top;
 	}
-	function drawBackground() {
+	function drawBackground( object playerCamera ) {
 		.layers.each() using ( layer ) {
 			if( layer.level <= 0 ) {
-				layer.draw(.changeX, .changeY);
+				layer.draw(.changeX, .changeY, playerCamera);
 			}
 		};
 	}
-	function drawForeground() {
+	function drawForeground( object playerCamera ) {
 		.layers.each() using ( layer ) {
 			if( layer.level > 0 ) {
-				layer.draw(.changeX, .changeY);
+				layer.draw(.changeX, .changeY, playerCamera);
 			}
 		};
 	}

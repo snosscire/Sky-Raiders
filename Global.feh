@@ -2,8 +2,8 @@ namespace Global {
 	/*************************************************************************
 	 * Game
 	 *************************************************************************/
-	number DefaultScreenWidth = 1280;
-	number DefaultScreenHeight = 720;
+	number DefaultScreenWidth = 1024;
+	number DefaultScreenHeight = 768;
 	boolean DefaultFullScreenState = false;
 	number Gravity = 1.0;
 	string FontFPS = "font-10.png";
@@ -61,7 +61,7 @@ namespace Global {
 Global.Maps["Test"] = [
 	"name"   => "Test",
 	"width"  => 4050,
-	"height" => 720,
+	"height" => 1024,
 	/********* layers **********/
 	"layers" => [
 		[

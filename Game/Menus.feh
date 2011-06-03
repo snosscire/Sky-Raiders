@@ -137,7 +137,7 @@ class ImageMenu {
 		checkbox.checked = checked;
 		.items[name] = checkbox;
 	}
-	function addInvisibleSlider( string name, number x, number y, number width, number height ) {
+	function addInvisibleSlider( string name, number x, number y, number width, number height, array options ) {
 		object slider = new InvisibleSliderMenuItem();
 		slider.menu = self;
 		slider.x = x;
@@ -146,7 +146,15 @@ class ImageMenu {
 		slider.height = height;
 		slider.buttonX = x;
 		slider.buttonY = y;
+		slider.options = options;
+		slider.block = recipient();
 		.items[name] = slider;
+	}
+	function addImage( string name, number x, number y ) {
+		object image = new MenuImage();
+		image.x = x;
+		image.y = y;
+		.items[name] = image;
 	}
 	function getItem( string name ) {
 		if( .items.keyExists(name) )
@@ -155,9 +163,11 @@ class ImageMenu {
 	}
 	function registerListeners() {
 		.items.each() using ( item ) {
-			EventHandler.registerListener(Engine.EVENT_MOUSEBUTTONDOWN, item);
-			EventHandler.registerListener(Engine.EVENT_MOUSEBUTTONUP, item);
-			EventHandler.registerListener(Engine.EVENT_MOUSEMOTION, item);
+			if( item.registerListeners ) {
+				EventHandler.registerListener(Engine.EVENT_MOUSEBUTTONDOWN, item);
+				EventHandler.registerListener(Engine.EVENT_MOUSEBUTTONUP, item);
+				EventHandler.registerListener(Engine.EVENT_MOUSEMOTION, item);
+			}
 		};
 	}
 	function draw() {
@@ -169,6 +179,7 @@ class ImageMenu {
 }
 
 class InvisibleMenuItem {
+	boolean registerListeners = true;
 	function onButtonDown( object event );
 	function onButtonUp( object event );
 	function onMouseMotion( object event );
@@ -223,6 +234,20 @@ class InvisibleCheckBoxMenuItem extends InvisibleMenuItem {
 	}
 }
 
+class MenuImage {
+	number x;
+	number y;
+	object image;
+	boolean registerListeners = false;
+	function draw() {
+		Engine.drawRectangle(.x, .y, 10, 10, 255, 0, 0);
+		.image and Engine.drawImage(.image, .x, .y);
+	}
+	function setImage( string path ) {
+		.image = Engine.loadImageResource(path);
+	}
+}
+
 class InvisibleSliderMenuItem extends InvisibleMenuItem {
 	object menu;
 	number x;
@@ -234,6 +259,8 @@ class InvisibleSliderMenuItem extends InvisibleMenuItem {
 	number buttonX;
 	number buttonY;
 	boolean holdingButton;
+	array options;
+	string selectedOption;
 	
 	constructor {
 		.button = Engine.loadImageResource("GUI/slider_button.png");
@@ -266,6 +293,21 @@ class InvisibleSliderMenuItem extends InvisibleMenuItem {
 			number right = .x + .width - .button.width() - 1;
 			if( newButtonX > left and newButtonX < right ) {
 				.buttonX = newButtonX;
+			}
+			if( .options ) {
+				if( .options.size() > 1 ) {
+					number optionItemPercentage = 100 / .options.size();
+					number buttonXPercentage = ((((.buttonX - .x) + 0.0) / .width) * 100);
+					number optionIndex = ((buttonXPercentage / optionItemPercentage)).floor().round();
+					//Engine.printLine("item: ${optionItemPercentage}");
+					//Engine.printLine("button: ${buttonXPercentage}");
+					//Engine.printLine("optionIndex: ${optionIndex}");
+					.block and .block.invoke(.options[optionIndex]);
+					.selectedOption = .options[optionIndex];
+				} else {
+					.block and .block.invoke(.options[0]);
+					.selectedOption = .options[0];
+				}
 			}
 		}
 	}
