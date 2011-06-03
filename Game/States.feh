@@ -267,112 +267,116 @@ class MenuState extends State {
 	object joinMenu;
 	object settingsMenu;
 	object currentMenu;
+	boolean menusInited = false;
 	function init() {
-		.mainMenu = new ImageMenu();
-		.mainMenu.setImage("main_menu_indexed.png");
-		.mainMenu.addInvisibleButton("StartButton", 500, 108, 250, 100) using {
-			.currentMenu.setActive(false);
-			.startMenu.setActive(true);
-			.currentMenu = .startMenu;
-		};
-		.mainMenu.addInvisibleButton("JoinButton", 500, 241, 250, 100) using {
-			.currentMenu.setActive(false);
-			.joinMenu.setActive(true);
-			.currentMenu = .joinMenu;
-		};
-		.mainMenu.addInvisibleButton("SettingsButton", 500, 374, 250, 100) using {
-			.currentMenu.setActive(false);
-			.settingsMenu.setActive(true);
-			.currentMenu = .settingsMenu;
-		};
-		.mainMenu.addInvisibleButton("QuitButton", 500, 507, 250, 100) using {
-			Game.quit();
-		};
+		if( not .menusInited ) {
+			.mainMenu = new ImageMenu();
+			.mainMenu.setImage("main_menu_indexed.png");
+			.mainMenu.addInvisibleButton("StartButton", 500, 108, 250, 100) using {
+				.currentMenu.setActive(false);
+				.startMenu.setActive(true);
+				.currentMenu = .startMenu;
+			};
+			.mainMenu.addInvisibleButton("JoinButton", 500, 241, 250, 100) using {
+				.currentMenu.setActive(false);
+				.joinMenu.setActive(true);
+				.currentMenu = .joinMenu;
+			};
+			.mainMenu.addInvisibleButton("SettingsButton", 500, 374, 250, 100) using {
+				.currentMenu.setActive(false);
+				.settingsMenu.setActive(true);
+				.currentMenu = .settingsMenu;
+			};
+			.mainMenu.addInvisibleButton("QuitButton", 500, 507, 250, 100) using {
+				Game.quit();
+			};
 		
-		.startMenu = new ImageMenu();
-		.startMenu.setImage("create_menu_indexed.png");
+			.startMenu = new ImageMenu();
+			.startMenu.setImage("create_menu_indexed.png");
 
-		.joinMenu = new ImageMenu();
-		.joinMenu.setImage("join_menu_indexed.png");
+			.joinMenu = new ImageMenu();
+			.joinMenu.setImage("join_menu_indexed.png");
 
-		.settingsMenu = new ImageMenu();
-		.settingsMenu.setImage("settings_menu_indexed.png");
-		// show fps
-		.settingsMenu.addInvisibleCheckBox("ShowFpsCheckBox", 547, 459, 32, 29, false) using {
-			// Do nothing
-		};
-		// low quality
-		.settingsMenu.addInvisibleCheckBox("LowQualityCheckBox", 915, 459, 32, 29, false) using {
-			Console.printLine('click');
-		};
-		// windowed mode
-		.settingsMenu.addInvisibleCheckBox("WindowedModeCheckBox", 675, 520, 32, 29, (not Global.DefaultFullScreenState)) using {
-			Console.printLine('click');
-		};
-		// back
-		.settingsMenu.addInvisibleButton("BackButton", 212, 585, 250, 100) using {
-			.currentMenu.setActive(false);
-			.mainMenu.setActive(true);
-			.currentMenu = .mainMenu;
-		};
-		// ok
-		.settingsMenu.addInvisibleButton("OkButton", 817, 585, 250, 100) using {
-			number newScreenWidth = 1024;
-			number newScreenHeight = 768;
-			boolean fullscreen = (not .settingsMenu.getItem("WindowedModeCheckBox").checked);
-			string selectedResolution = .settingsMenu.getItem("ScreenResolutionSlider").selectedOption;
-			if( selectedResolution == "1280x720" ) {
-				newScreenWidth = 1280;
-				newScreenHeight = 720;
-			} else if( selectedResolution == "1280x800" ) {
-				newScreenWidth = 1280;
-				newScreenHeight = 800;
-			} else if ( selectedResolution == "1280x1024" ) {
-				newScreenWidth = 1280;
-				newScreenHeight = 1024;
-			}
-			Engine.setScreen(newScreenWidth, newScreenHeight, fullscreen);
-			Game.showFPS = .settingsMenu.getItem("ShowFpsCheckBox").checked;
-			.currentMenu.setActive(false);
-			.mainMenu.setActive(true);
-			.currentMenu = .mainMenu;
-		};
-		// aspect ratio
-		.settingsMenu.addInvisibleSlider("AspectRatioSlider", 275, 304, 730, 27, [ "4:3", "16:9", "16:10" ]) using ( string item ) {
-			if( item == "4:3" ) {
-				.settingsMenu.getItem("AspectRatioLabel").setImage("GUI/4_3.png");
-				.settingsMenu.getItem("ScreenResolutionSlider").options = [ "1024x768", "1280x1024" ];
-				.settingsMenu.getItem("ScreenResolutionSlider").selectedOption = "1024x768";
-				.settingsMenu.getItem("ResolutionLabel").setImage("GUI/1024_768.png");
-			} else if( item == "16:10" ) {
-				.settingsMenu.getItem("AspectRatioLabel").setImage("GUI/16_10.png");
-				.settingsMenu.getItem("ScreenResolutionSlider").options = [ "1280x800" ];
-				.settingsMenu.getItem("ScreenResolutionSlider").selectedOption = "1280x800";
-				.settingsMenu.getItem("ResolutionLabel").setImage("GUI/1280_800.png");
-			} else if( item == "16:9" ) {
-				.settingsMenu.getItem("AspectRatioLabel").setImage("GUI/16_9.png");
-				.settingsMenu.getItem("ScreenResolutionSlider").options = [ "1280x720" ];
-				.settingsMenu.getItem("ScreenResolutionSlider").selectedOption = "1280x720";
-				.settingsMenu.getItem("ResolutionLabel").setImage("GUI/1280_720.png");
-			}
-		};
-		// resolution
-		.settingsMenu.addInvisibleSlider("ScreenResolutionSlider", 275, 398, 730, 27, [ "1024x768", "1280x1024" ]) using ( string item ) {
-			if( item == "1024x768" ) .settingsMenu.getItem("ResolutionLabel").setImage("GUI/1024_768.png");
-			else if( item == "1280x720" ) .settingsMenu.getItem("ResolutionLabel").setImage("GUI/1280_720.png");
-			else if( item == "1280x800" ) .settingsMenu.getItem("ResolutionLabel").setImage("GUI/1280_800.png");
-			else if( item == "1280x1024" ) .settingsMenu.getItem("ResolutionLabel").setImage("GUI/1280_1024.png");
-		};
-		.settingsMenu.getItem("ScreenResolutionSlider").selectedOption = "1024x768";
-		// aspect ratio text
-		.settingsMenu.addImage("AspectRatioLabel", 600, 253);
-		.settingsMenu.getItem("AspectRatioLabel").setImage("GUI/4_3.png");
-		// resolution text
-		.settingsMenu.addImage("ResolutionLabel", 600, 347);
-		.settingsMenu.getItem("ResolutionLabel").setImage("GUI/1024_768.png");
+			.settingsMenu = new ImageMenu();
+			.settingsMenu.setImage("settings_menu_indexed.png");
+			// show fps
+			.settingsMenu.addInvisibleCheckBox("ShowFpsCheckBox", 547, 459, 32, 29, false) using {
+				// Do nothing
+			};
+			// low quality
+			.settingsMenu.addInvisibleCheckBox("LowQualityCheckBox", 915, 459, 32, 29, false) using {
+				Console.printLine('click');
+			};
+			// windowed mode
+			.settingsMenu.addInvisibleCheckBox("WindowedModeCheckBox", 675, 520, 32, 29, (not Global.DefaultFullScreenState)) using {
+				Console.printLine('click');
+			};
+			// back
+			.settingsMenu.addInvisibleButton("BackButton", 212, 585, 250, 100) using {
+				.currentMenu.setActive(false);
+				.mainMenu.setActive(true);
+				.currentMenu = .mainMenu;
+			};
+			// ok
+			.settingsMenu.addInvisibleButton("OkButton", 817, 585, 250, 100) using {
+				number newScreenWidth = 1024;
+				number newScreenHeight = 768;
+				boolean fullscreen = (not .settingsMenu.getItem("WindowedModeCheckBox").checked);
+				string selectedResolution = .settingsMenu.getItem("ScreenResolutionSlider").selectedOption;
+				if( selectedResolution == "1280x720" ) {
+					newScreenWidth = 1280;
+					newScreenHeight = 720;
+				} else if( selectedResolution == "1280x800" ) {
+					newScreenWidth = 1280;
+					newScreenHeight = 800;
+				} else if ( selectedResolution == "1280x1024" ) {
+					newScreenWidth = 1280;
+					newScreenHeight = 1024;
+				}
+				Engine.setScreen(newScreenWidth, newScreenHeight, fullscreen);
+				Game.showFPS = .settingsMenu.getItem("ShowFpsCheckBox").checked;
+				.currentMenu.setActive(false);
+				.mainMenu.setActive(true);
+				.currentMenu = .mainMenu;
+			};
+			// aspect ratio
+			.settingsMenu.addInvisibleSlider("AspectRatioSlider", 275, 304, 730, 27, [ "4:3", "16:9", "16:10" ]) using ( string item ) {
+				if( item == "4:3" ) {
+					.settingsMenu.getItem("AspectRatioLabel").setImage("GUI/4_3.png");
+					.settingsMenu.getItem("ScreenResolutionSlider").options = [ "1024x768", "1280x1024" ];
+					.settingsMenu.getItem("ScreenResolutionSlider").selectedOption = "1024x768";
+					.settingsMenu.getItem("ResolutionLabel").setImage("GUI/1024_768.png");
+				} else if( item == "16:10" ) {
+					.settingsMenu.getItem("AspectRatioLabel").setImage("GUI/16_10.png");
+					.settingsMenu.getItem("ScreenResolutionSlider").options = [ "1280x800" ];
+					.settingsMenu.getItem("ScreenResolutionSlider").selectedOption = "1280x800";
+					.settingsMenu.getItem("ResolutionLabel").setImage("GUI/1280_800.png");
+				} else if( item == "16:9" ) {
+					.settingsMenu.getItem("AspectRatioLabel").setImage("GUI/16_9.png");
+					.settingsMenu.getItem("ScreenResolutionSlider").options = [ "1280x720" ];
+					.settingsMenu.getItem("ScreenResolutionSlider").selectedOption = "1280x720";
+					.settingsMenu.getItem("ResolutionLabel").setImage("GUI/1280_720.png");
+				}
+			};
+			// resolution
+			.settingsMenu.addInvisibleSlider("ScreenResolutionSlider", 275, 398, 730, 27, [ "1024x768", "1280x1024" ]) using ( string item ) {
+				if( item == "1024x768" ) .settingsMenu.getItem("ResolutionLabel").setImage("GUI/1024_768.png");
+				else if( item == "1280x720" ) .settingsMenu.getItem("ResolutionLabel").setImage("GUI/1280_720.png");
+				else if( item == "1280x800" ) .settingsMenu.getItem("ResolutionLabel").setImage("GUI/1280_800.png");
+				else if( item == "1280x1024" ) .settingsMenu.getItem("ResolutionLabel").setImage("GUI/1280_1024.png");
+			};
+			.settingsMenu.getItem("ScreenResolutionSlider").selectedOption = "1024x768";
+			// aspect ratio text
+			.settingsMenu.addImage("AspectRatioLabel", 600, 253);
+			.settingsMenu.getItem("AspectRatioLabel").setImage("GUI/4_3.png");
+			// resolution text
+			.settingsMenu.addImage("ResolutionLabel", 600, 347);
+			.settingsMenu.getItem("ResolutionLabel").setImage("GUI/1024_768.png");
+			
+			.menusInited = true;
+		}
 		
-		
-		
+		.currentMenu and .currentMenu.setActive(false);
 		.currentMenu = .mainMenu;
 		.currentMenu.setActive(true);
 		
