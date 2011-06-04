@@ -3,6 +3,7 @@ namespace modifies Network {
 	number MESSAGE_PLAYER_UPDATE   = 154;
 	number MESSAGE_NEW_PLAYER      = 153;
 	number MESSAGE_INITIALIZE_JOIN = 152;
+	number MESSAGE_PLAYER_HIT      = 151;
 	
 	object client;
 	function currentClient() {
@@ -89,6 +90,7 @@ namespace modifies Network {
 		switch( type ) {
 			case Network.MESSAGE_NEW_PLAYER:    message = Network.NewPlayerMessage.fromData(data, false); break;
 			case Network.MESSAGE_PLAYER_UPDATE: message = Network.PlayerUpdateMessage.fromData(data, false); break;
+			case Network.MESSAGE_PLAYER_HIT:    message = Network.PlayerHitMessage.fromData(data, false); break;
 		}
 		return message;
 	}
@@ -114,6 +116,7 @@ namespace MessageHandler {
 						//case Network.MESSAGE_DISCONNECT_ME: listener.onDisconnectMe(dataMessage); break;
 						case Network.MESSAGE_NEW_PLAYER:    listener.onNewPlayer(dataMessage); break;
 						case Network.MESSAGE_PLAYER_UPDATE: listener.onPlayerUpdate(dataMessage); break;
+						case Network.MESSAGE_PLAYER_HIT:    listener.onPlayerHit(dataMessage); break;
 					}
 				};
 			}

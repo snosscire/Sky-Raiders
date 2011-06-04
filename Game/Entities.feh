@@ -199,7 +199,7 @@ class Player extends Entity {
 			}
 			
 			if( .bottom >= currentMap.getHeight() ) {
-				.takeDamage(100);
+				.reduceHealth(100);
 			}
 			
 			if( .me and (Time.current >= .sendNextUpdate or .shotWeapon) ) {
@@ -311,8 +311,21 @@ class Player extends Entity {
 		return false;
 	}
 
+	function takeDamage( object shooter, number damage ) {
+		if( .me ) {
+			Network.send(new Network.PlayerHitMessage(self, shooter, damage));
+			.reduceHealth(damage);
+			if( .health > 0 ) {
+				Console.printLine("${shooter.name} hit ${.name} for ${damage} damage.");
+			} else {
+				Console.printLine("${shooter.name} killed ${.name}.");
+			}
+
+		}
+	}
+	
 	number timeOfDeath;
-	function takeDamage( number damage ) {
+	function reduceHealth( number damage ) {
 		if( .health > 0.0 ) {
 			.health -= damage;
 			if( .health <= 0.0 ) {

@@ -74,6 +74,8 @@ class MultiplayerState extends State {
 	boolean connectAutomatically;
 	string host;
 	number port;
+	object scoreScreen;
+	boolean showScoreScreen;
 	boolean askAreYouSure;
 	number connectionInitiatedTime;
 	string localPlayerName;
@@ -90,10 +92,12 @@ class MultiplayerState extends State {
 			MessageHandler.registerListener(Network.MESSAGE_DISCONNECT_ME, self);
 			MessageHandler.registerListener(Network.MESSAGE_CONNECT, self);
 			MessageHandler.registerListener(Network.MESSAGE_NEW_PLAYER, self);
+			MessageHandler.registerListener(Network.MESSAGE_PLAYER_HIT, self);
 			.listenersRegistered = true;
 		}
 		.currentMap = Map.load("Test");
 		.playerCamera = new Camera();
+		.showScoreScreen = false;
 		.askAreYouSure = false;
 		.connected = false;
 		.active = true;
@@ -110,6 +114,7 @@ class MultiplayerState extends State {
 		}
 	}
 	function quit() {
+		.showScoreScreen = false;
 		.askAreYouSure = false;
 		.active = false;
 		.connected = false;
@@ -153,6 +158,8 @@ class MultiplayerState extends State {
 				number x = (Engine.screenWidth() / 2) - (font.textWidth(text) / 2);
 				number y = (Engine.screenHeight() / 2) - (font.height / 2);
 				font.drawText(text, x, y);
+			} else if( .showScoreScreen ) {
+				.scoreScreen and .scoreScreen.draw();
 			}
 		}
 	}
@@ -229,6 +236,17 @@ class MultiplayerState extends State {
 				.connected = true;
 			}
 			.createPlayer(message, me);
+		}
+	}
+	function onPlayerHit( object message ) {
+		object shooter = .players["Player/${message.shooter}"];
+		object player = .players["Player/${message.id}"];
+		player.health = message.health;
+		player.reduceHealth(message.damage);
+		if( player.health > 0 ) {
+			Console.printLine("${shooter.name} hit ${player.name} for ${message.damage} damage.");
+		} else {
+			Console.printLine("${shooter.name} killed ${player.name}.");
 		}
 	}
 }

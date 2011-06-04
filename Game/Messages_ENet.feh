@@ -109,5 +109,37 @@ namespace modifies Network {
 			return data;		
 		}
 	}
+	class PlayerHitMessage {
+		number type;
+		number id;
+		number health;
+		number shooter;
+		number damage;
+		constructor( object player, object shooter, number damage ) {
+			.type = Network.MESSAGE_PLAYER_HIT;
+			.id = player.id;
+			.health = player.health;
+			.shooter = shooter.id;
+			.damage = damage;
+		}
+		static function fromData( string& data, boolean hasType ) {
+			object message = new Network.PlayerHitMessage();
+			message.type = (hasType ? Network.readByteFromData(data) : Network.MESSAGE_PLAYER_HIT);
+			message.id = Network.readByteFromData(data);
+			message.health = Network.readByteFromData(data);
+			message.shooter = Network.readByteFromData(data);
+			message.damage = Network.readByteFromData(data);
+			return message;
+		}
+		function toData() {
+			string data;
+			Network.addByteToData(data, .type);
+			Network.addByteToData(data, .id);
+			Network.addByteToData(data, .health);
+			Network.addByteToData(data, .shooter);
+			Network.addByteToData(data, .damage);
+			return data;
+		}
+	}
 }
 

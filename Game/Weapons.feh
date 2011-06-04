@@ -34,7 +34,7 @@ class Bullet extends Projectile {
 			Game.players.each() using ( player ) {
 				if( .origin.id != player.id and player.collide(self) ) {
 					.active = false;
-					player.takeDamage(Global.MachineGunBulletDamage);
+					player.takeDamage(.origin, Global.MachineGunBulletDamage);
 				}
 			};
 		}

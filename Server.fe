@@ -89,11 +89,30 @@ function HandlePlayerUpdate( object server, object dataMessage ) {
 	};
 }
 
+function HandlePlayerHit( object server, object dataMessage ) {
+	string dataCopy = dataMessage.data;
+	object message = Network.PlayerHitMessage.fromData(dataMessage.data, true);
+	object player = GameServer.players["Player/${message.id}"];
+	object shooter = GameServer.players["Player/${message.shooter}"];
+	player.health = (message.health - message.damage);
+	GameServer.players.each() using ( player ) {
+		if( player.id != message.id ) {
+			server.send(player.peer, dataCopy);
+		}
+	};
+	if( player.health > 0 ) {
+		Engine.printLine("${shooter.name} (${shooter.id}) hit ${player.name} (${player.id}) for ${message.damage} damage.");
+	} else {
+		Engine.printLine("${shooter.name} (${shooter.id}) killed ${player.name} (${player.id}).");
+	}
+}
+
 function HandleData( object server, object message ) {
 	string dataCopy = message.data;
 	number type = Network.readByteFromData(dataCopy);
 	switch( type ) {
 		case Network.MESSAGE_PLAYER_UPDATE:   HandlePlayerUpdate(server, message); break;
+		case Network.MESSAGE_PLAYER_HIT:      HandlePlayerHit(server, message); break;
 		case Network.MESSAGE_INITIALIZE_JOIN: HandleInitializeJoin(server, message); break;
 	}
 }
