@@ -74,6 +74,7 @@ class MultiplayerState extends State {
 	boolean connectAutomatically;
 	string host;
 	number port;
+	boolean askAreYouSure;
 	
 	function setConnectAutomatically( string host, number port ) {
 		.connectAutomatically = true;
@@ -91,6 +92,7 @@ class MultiplayerState extends State {
 		}
 		.currentMap = Map.load("Test");
 		.playerCamera = new Camera();
+		.askAreYouSure = false;
 		.connected = false;
 		.active = true;
 		if( .connectAutomatically ) {
@@ -106,6 +108,7 @@ class MultiplayerState extends State {
 		}
 	}
 	function quit() {
+		.askAreYouSure = false;
 		.active = false;
 		.connected = false;
 		.currentMap and .currentMap.unload();
@@ -142,13 +145,31 @@ class MultiplayerState extends State {
 			};
 			//.localPlayer.draw(.playerCamera, .currentMap);
 			.currentMap.drawForeground(.playerCamera);
+			if( .askAreYouSure ) {
+				object font = Engine.loadFont("font-menu.png", 20, 20);
+				string text = "are you sure you want to quit... y/n";
+				number x = (Engine.screenWidth() / 2) - (font.textWidth(text) / 2);
+				number y = (Engine.screenHeight() / 2) - (font.height / 2);
+				font.drawText(text, x, y);
+			}
 		}
 	}
 	
 	function onKeyDown( object event ) {
 		if( .active and (not Console.active) ) {
 			if( event.key == Engine.KEY_ESCAPE ) {
-				Game.setState(Game.menuState());
+				if( .connected ) {
+					.askAreYouSure = true;
+				} else {
+					Game.setState(Game.menuState());
+				}
+			}
+			if( .askAreYouSure ) {
+				if( event.key == Engine.KEY_y ) {
+					Game.setState(Game.menuState());
+				} else if( event.key == Engine.KEY_n ) {
+					.askAreYouSure = false;
+				}
 			}
 		}
 	}
