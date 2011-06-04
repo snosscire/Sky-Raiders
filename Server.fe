@@ -26,6 +26,8 @@ class Player {
 	string name;
 	number x;
 	number y;
+	number spawnLocationX;
+	number spawnLocationY;
 	number angle;
 	number spriteAngle;
 	number speed;
@@ -99,6 +101,8 @@ function HandleInitializeJoin( object server, object dataMessage ) {
 	newPlayer.name = initializeJoinMessage.name;
 	newPlayer.x = spawnLocation['x'];
 	newPlayer.y = spawnLocation['y'];
+	newPlayer.spawnLocationX = newPlayer.x;
+	newPlayer.spawnLocationY = newPlayer.y;
 	newPlayer.angle = Global.PlayerStartAngle;
 	newPlayer.spriteAngle = Global.PlayerStartAngle;
 	newPlayer.speed = Global.PlayerSpeed;
