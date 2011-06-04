@@ -116,6 +116,7 @@ class PlayerSprite {
 		
 		rotatedSprite = .currentSprite.rotate(-(.angle), 1.0, false);
 		Engine.drawImage(rotatedSprite, x - (rotatedSprite.width() / 2), y - (rotatedSprite.height() / 2));
+		rotatedSprite.unload();
 		
 		drawPlayerNames and Engine.loadFont(Global.FontConsole, 10, 10, -2).drawText("${name}", x, y);
 	}
@@ -275,6 +276,8 @@ class Player extends Entity {
 			.spriteAngle = Global.PlayerStartAngle;
 			.health = Global.PlayerStartHealth;
 			.stalling = false;
+		} else if( (.health <= 0.0 and Time.current >= .timeOfDeath + Global.PlayerRespawnTime) ) {
+			.health = Global.PlayerStartHealth;
 		}
 	}
 	
@@ -355,10 +358,10 @@ class Player extends Entity {
 	function collisionObject() {
 		if( not .collisionRectangle )
 			.collisionRectangle = new Rectangle();
-		.collisionRectangle.x = .x - (.sprite.width() / 4);
-		.collisionRectangle.y = .y - (.sprite.height() / 4);
-		.collisionRectangle.width = (.sprite.width() / 2);
-		.collisionRectangle.height = (.sprite.height() / 2);
+		.collisionRectangle.x = .x - (.playerSprite.currentSprite.width() / 4);
+		.collisionRectangle.y = .y - (.playerSprite.currentSprite.height() / 4);
+		.collisionRectangle.width = (.playerSprite.currentSprite.width() / 2);
+		.collisionRectangle.height = (.playerSprite.currentSprite.height() / 2);
 		.collisionRectangle.recalculate();
 		return .collisionRectangle;
 	}
