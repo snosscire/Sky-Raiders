@@ -45,6 +45,7 @@ namespace Global {
 	number MachineGunBulletOnScreenAmount = 100;
 	number MachineGunBulletSpeed = 5.0;
 	number MachineGunBulletDamage = 25.0;
+	number MachineGunBulletLifeTime = 2000;
 	/*************************************************************************
 	 * Server
 	 *************************************************************************/

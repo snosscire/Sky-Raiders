@@ -11,6 +11,7 @@ class Bullet extends Projectile {
 	object origin;
 	object sprite;
 	object collisionRectangle;
+	number lifeTime;
 	constructor {
 		raise new Error('Bullet: Wrong constructor.');
 	}
@@ -26,17 +27,22 @@ class Bullet extends Projectile {
 	function update( number deltaTime, object currentMap ) {
 		number radianAngle = .angle * Engine.PI180;
 		number deltaSpeed = (.speed * Entity.speedMultiplier(deltaTime));
-		.x += (deltaSpeed * Engine.cos(radianAngle));
-		.y += (deltaSpeed * Engine.sin(radianAngle));
-		if( .x < 0 or .x > currentMap.getWidth() or .y < 0 or .y > currentMap.getHeight() )
+		.lifeTime -= deltaTime;
+		if( .lifeTime >= 0 ) {
+			.x += (deltaSpeed * Engine.cos(radianAngle));
+			.y += (deltaSpeed * Engine.sin(radianAngle));
+			if( .x < 0 or .x > currentMap.getWidth() or .y < 0 or .y > currentMap.getHeight() )
+				.active = false;
+			if( .active ) {
+				Game.players.each() using ( player ) {
+					if( .origin.id != player.id and player.collide(self) ) {
+						.active = false;
+						player.takeDamage(.origin, Global.MachineGunBulletDamage);
+					}
+				};
+			}
+		} else {
 			.active = false;
-		if( .active ) {
-			Game.players.each() using ( player ) {
-				if( .origin.id != player.id and player.collide(self) ) {
-					.active = false;
-					player.takeDamage(.origin, Global.MachineGunBulletDamage);
-				}
-			};
 		}
 	}
 	function draw( object playerCamera ) {
@@ -92,6 +98,7 @@ class MachineGun extends Weapon {
 				.bullets[i].y = origin.y;
 				.bullets[i].angle = origin.spriteAngle;
 				.bullets[i].active = true;
+				.bullets[i].lifeTime = Global.MachineGunBulletLifeTime;
 				.activeBullets[] = i;
 				break;
 			}
