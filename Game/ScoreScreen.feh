@@ -1,0 +1,37 @@
+class ScoreScreen {
+	object font;
+	object fontWinner;
+	number width = 155;
+	number height = 155;
+	number lineMargin = 2;
+	string winner;
+	constructor {
+		.font = Engine.loadFont("font-console.png", 10, 10);
+		.fontWinner = Engine.loadFont("font-big.png", 40, 40);
+	}
+	function setWinner( string winner ) {
+		.winner = winner;
+	}
+	function draw() {
+		number x = (Engine.screenWidth() / 2) - (.width / 2);
+		number y = (Engine.screenHeight() / 2) - (.height / 2);
+		number lineY = y;
+		
+		if( .winner ) {
+			string text = "winner... ${.winner}";
+			.fontWinner.drawText(text, (Engine.screenWidth() / 2) - (.fontWinner.textWidth(text) / 2), y - (.fontWinner.height * 2));
+		}
+		
+		.font.drawText("score - name", x, lineY);
+		lineY += .font.height + .lineMargin;
+		.font.drawText("--------------------", x, lineY);
+		lineY += .font.height + .lineMargin;
+		
+		Game.players.each() using ( player ) {
+			string text = "${player.score} - ${player.name}";
+			.font.drawText(text, x, lineY);
+			lineY += .font.height + .lineMargin;
+		};
+	}
+}
+

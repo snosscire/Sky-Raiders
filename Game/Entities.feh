@@ -222,7 +222,7 @@ class Player extends Entity {
 		}
 	}
 	
-	function draw( object playerCamera, object currentMap ) {
+	function draw( object playerCamera, object currentMap, boolean drawPlayerNames ) {
 		.weapon and .weapon.draw(playerCamera);
 		if( .me or (.x >= playerCamera.left and .x <= playerCamera.right and .y >= playerCamera.top and .y <= playerCamera.bottom) ) {
 			//.smokePuffs.each() using ( smokePuff ) {
@@ -252,10 +252,10 @@ class Player extends Entity {
 					.rotatedSprite = .sprite.rotate(-(.spriteAngle), 1.0, false);
 					.lastSpriteAngle = .spriteAngle;
 					Engine.drawImage(.rotatedSprite, x - (.rotatedSprite.width() / 2), y - (.rotatedSprite.height() / 2));
-					Engine.loadFont(Global.FontConsole, 10, 10, -2).drawText("${.name}", x, y);
+					drawPlayerNames and Engine.loadFont(Global.FontConsole, 10, 10, -2).drawText("${.name}", x, y);
 				} else {
 					Engine.drawImage(.rotatedSprite, x - (.rotatedSprite.width() / 2), y - (.rotatedSprite.height() / 2));
-					Engine.loadFont(Global.FontConsole, 10, 10, -2).drawText("${.name}", x, y);
+					drawPlayerNames and Engine.loadFont(Global.FontConsole, 10, 10, -2).drawText("${.name}", x, y);
 				}
 				.hitExplosion.draw(playerCamera);
 			}
@@ -282,6 +282,9 @@ class Player extends Entity {
 				Engine.drawRectangle(x, y, o.width, o.height, 255, 0, 0);
 			}
 		}
+	}
+	function draw( object playerCamera, object currentMap ) {
+		.draw(playerCamera, currentMap, true);
 	}
 	
 	function shoot() {

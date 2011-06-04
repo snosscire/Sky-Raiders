@@ -4,8 +4,15 @@ uses 'Game/String.feh';
 uses 'Game/Network_ENet.feh';
 uses 'Game/Messages_ENet.feh';
 
+namespace Time {
+	number current;
+	number last;
+	number delta;
+}
+
 namespace GameServer {
 	number nextID = 255;
+	number maxTime = 20000;
 	array players;
 }
 
@@ -119,8 +126,29 @@ function HandleData( object server, object message ) {
 	}
 }
 
+function SendRoundEnd( object server ) {
+	object winner;
+	number highestScore;
+	object message;
+	string data;
+	GameServer.players.each() using ( player ) {
+		if( player.score >= highestScore ) {
+			highestScore = player.score;
+			winner = player;
+		}
+	};
+	Engine.printLine("Winner of this round is ${winner.name}.");
+	message = new Network.RoundEndMessage(winner.id);
+	data = message.toData();
+	GameServer.players.each() using ( player ) {
+		server.send(player.peer, data);
+	};
+}
+
 number port = Global.ServerDefaultPort;
 object server = Network.Server.start(port);
+
+boolean roundEndMessageSent = false;
 
 Engine.printLine("Trying to start server at port ${port}...");
 
@@ -129,12 +157,27 @@ if( server ) {
 	
 	Engine.printLine("Server started.");
 	
+	Time.current = Engine.currentTime();
+	Time.last = Time.current;
+	Time.delta = 0;
+	
 	while( true ) {
-		while( message = server.service(0) ) {
-			switch( message.type ) {
-				case Network.MESSAGE_CONNECT:    HandleConnect(server, message); break;
-				case Network.MESSAGE_DISCONNECT: HandleDisconnect(server, message); break;
-				case Network.MESSAGE_DATA:       HandleData(server, message); break;
+		Time.current = Engine.currentTime();
+		Time.delta = Time.current - Time.last;
+		Time.last = Time.current;
+		
+		if( Time.current >= GameServer.maxTime and roundEndMessageSent == false ) {
+			Engine.printLine("Time is up. End of round. See you next time.");
+			SendRoundEnd(server);
+			roundEndMessageSent = true;
+		}
+		while( message = server.service(10) ) {
+			if( not roundEndMessageSent ) {
+				switch( message.type ) {
+					case Network.MESSAGE_CONNECT:    HandleConnect(server, message); break;
+					case Network.MESSAGE_DISCONNECT: HandleDisconnect(server, message); break;
+					case Network.MESSAGE_DATA:       HandleData(server, message); break;
+				}
 			}
 		}
 	}

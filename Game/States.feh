@@ -77,6 +77,7 @@ class MultiplayerState extends State {
 	object scoreScreen;
 	boolean showScoreScreen;
 	boolean askAreYouSure;
+	boolean paused;
 	number connectionInitiatedTime;
 	string localPlayerName = "player";
 	
@@ -94,6 +95,7 @@ class MultiplayerState extends State {
 			MessageHandler.registerListener(Network.MESSAGE_CONNECT, self);
 			MessageHandler.registerListener(Network.MESSAGE_NEW_PLAYER, self);
 			MessageHandler.registerListener(Network.MESSAGE_PLAYER_HIT, self);
+			MessageHandler.registerListener(Network.MESSAGE_ROUND_END, self);
 			.listenersRegistered = true;
 		}
 		.currentMap = Map.load("Test");
@@ -102,6 +104,7 @@ class MultiplayerState extends State {
 		.scoreScreen = new ScoreScreen();
 		.askAreYouSure = false;
 		.connected = false;
+		.paused = false;
 		.active = true;
 		if( .connectAutomatically ) {
 			Console.printLine("------------------ connect ----------------------");
@@ -119,6 +122,7 @@ class MultiplayerState extends State {
 		.showScoreScreen = false;
 		.scoreScreen = null;
 		.askAreYouSure = false;
+		.paused = false;
 		.active = false;
 		.connected = false;
 		.currentMap and .currentMap.unload();
@@ -130,7 +134,7 @@ class MultiplayerState extends State {
 		Network.disconnect();
 	}
 	function update() {
-		if( .connected ) {
+		if( .connected and .paused == false ) {
 			//number deltaTime;
 			.players.each() using ( player ) {
 				//player.me and Console.printLine('updating me...');
@@ -151,7 +155,7 @@ class MultiplayerState extends State {
 		if( .connected ) {
 			.currentMap.drawBackground(.playerCamera);
 			.players.each() using ( player ) {
-				player.draw(.playerCamera, .currentMap);
+				player.draw(.playerCamera, .currentMap, (.showScoreScreen or .askAreYouSure ? false : true));
 			};
 			//.localPlayer.draw(.playerCamera, .currentMap);
 			.currentMap.drawForeground(.playerCamera);
@@ -251,16 +255,24 @@ class MultiplayerState extends State {
 		}
 	}
 	function onPlayerHit( object message ) {
-		object shooter = .players["Player/${message.shooter}"];
-		object player = .players["Player/${message.id}"];
-		player.health = message.health;
-		player.reduceHealth(message.damage);
-		if( player.health > 0 ) {
-			Console.printLine("${shooter.name} hit ${player.name} for ${message.damage} damage.");
-		} else {
-			Console.printLine("${shooter.name} killed ${player.name}.");
-			.players.keyExists("Player/${shooter.id}") and .players["Player/${shooter.id}"].score++;
-		}
+		//if( .players.keyExists("Player/${message.shooter}") and .players.keyExists("Player/${message.id}") ) {
+			object shooter = .players["Player/${message.shooter}"];
+			object player = .players["Player/${message.id}"];
+			player.health = message.health;
+			player.reduceHealth(message.damage);
+			if( player.health > 0 ) {
+				Console.printLine("${shooter.name} hit ${player.name} for ${message.damage} damage.");
+			} else {
+				Console.printLine("${shooter.name} killed ${player.name}.");
+				.players.keyExists("Player/${shooter.id}") and .players["Player/${shooter.id}"].score++;
+			}
+		//}
+	}
+	
+	function onRoundEnd( object message ) {
+		.scoreScreen.setWinner(.players["Player/${message.winner}"].name);
+		.showScoreScreen = true;
+		.paused = true;
 	}
 }
 

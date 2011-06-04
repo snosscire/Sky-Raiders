@@ -141,5 +141,25 @@ namespace modifies Network {
 			return data;
 		}
 	}
+	class RoundEndMessage {
+		number type;
+		number winner;
+		constructor( number winner ) {
+			.type = Network.MESSAGE_ROUND_END;
+			.winner = winner;
+		}
+		static function fromData( string& data, boolean hasType ) {
+			object message = new Network.RoundEndMessage();
+			message.type = (hasType ? Network.readByteFromData(data) : Network.MESSAGE_ROUND_END);
+			message.winner = Network.readByteFromData(data);
+			return message;
+		}
+		function toData() {
+			string data;
+			Network.addByteToData(data, .type);
+			Network.addByteToData(data, .winner);
+			return data;
+		}
+	}
 }
 
