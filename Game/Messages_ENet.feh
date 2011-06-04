@@ -1,13 +1,35 @@
 namespace modifies Network {
+	class InitializeJoinMessage {
+		number type;
+		string name;
+		constructor( string name ) {
+			.type = Network.MESSAGE_INITIALIZE_JOIN;
+			.name = name;
+		}
+		static function fromData( string& data, boolean hasType ) {
+			object message = new Network.InitializeJoinMessage();
+			message.type = (hasType ? Network.readByteFromData(data) : Network.MESSAGE_INITIALIZE_JOIN);
+			message.name = Network.readStringFromData(data);
+			return message;
+		}
+		function toData() {
+			string data;
+			Network.addByteToData(data, .type);
+			Network.addStringToData(data, .name);
+			return data;
+		}
+	}
 	class NewPlayerMessage {
 		number type;
 		number id;
+		string name;
 		number x;
 		number y;
 		static function fromPlayer( object player ) {
 			object message = new Network.NewPlayerMessage();
 			message.type = Network.MESSAGE_NEW_PLAYER;
 			message.id = player.id;
+			message.name = player.name;
 			message.x = player.x;
 			message.y = player.y;
 			return message;
@@ -16,6 +38,7 @@ namespace modifies Network {
 			object message = new Network.NewPlayerMessage();
 			message.type = (hasType ? Network.readByteFromData(data) : Network.MESSAGE_NEW_PLAYER);
 			message.id = Network.readByteFromData(data);
+			message.name = Network.readStringFromData(data);
 			message.x = Network.readDoubleFromData(data);
 			message.y = Network.readDoubleFromData(data);
 			return message;
@@ -24,6 +47,7 @@ namespace modifies Network {
 			string data;
 			Network.addByteToData(data, .type);
 			Network.addByteToData(data, .id);
+			Network.addStringToData(data, .name);
 			Network.addDoubleToData(data, .x);
 			Network.addDoubleToData(data, .y);
 			return data;

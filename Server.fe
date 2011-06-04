@@ -12,6 +12,7 @@ namespace GameServer {
 class Player {
 	object peer;
 	number id;
+	string name;
 	number x;
 	number y;
 	number angle;
@@ -27,20 +28,32 @@ function GetNextID() {
 }
 
 function HandleConnect( object server, object connectMessage ) {
+	Engine.printLine('User connected - waiting for initialize message...');
+}
+
+function HandleDisconnect( object server, object message ) {
+	Engine.printLine('User disconnected.');
+}
+
+function HandleInitializeJoin( object server, object dataMessage ) {
+	object initializeJoinMessage = Network.InitializeJoinMessage.fromData(dataMessage.data, true);
 	object newPlayer;
 	object newPlayerMessage;
 	string newPlayerMessageData;
-	
-	Engine.printLine('User connected.');
+
+	Engine.printLine('Initialize Join message recieved - creating player...');
 	
 	newPlayer = new Player();
-	newPlayer.peer = connectMessage.peer;
+	newPlayer.peer = dataMessage.peer;
 	newPlayer.id = GetNextID();
+	newPlayer.name = initializeJoinMessage.name;
 	newPlayer.x = 200;
 	newPlayer.y = 100;
 	newPlayer.angle = 0;
 	newPlayer.spriteAngle = 0;
 	newPlayer.speed = 1.8;
+
+	Engine.printLine("Created player ${newPlayer.name} (${newPlayer.id}).");
 	
 	newPlayerMessage = Network.NewPlayerMessage.fromPlayer(newPlayer);
 	newPlayerMessageData = newPlayerMessage.toData();
@@ -59,13 +72,9 @@ function HandleConnect( object server, object connectMessage ) {
 	GameServer.players["Player/${newPlayer.id}"] = newPlayer;
 }
 
-function HandleDisconnect( object server, object message ) {
-	Engine.printLine('User disconnected.');
-}
-
-function HandlePlayerUpdate( object server, string& data ) {
-	string dataCopy = data;
-	object message = Network.PlayerUpdateMessage.fromData(data, true);
+function HandlePlayerUpdate( object server, object dataMessage ) {
+	string dataCopy = dataMessage.data;
+	object message = Network.PlayerUpdateMessage.fromData(dataMessage.data, true);
 	object player = GameServer.players["Player/${message.id}"];
 	player.x = message.x;
 	player.y = message.y;
@@ -82,9 +91,10 @@ function HandlePlayerUpdate( object server, string& data ) {
 
 function HandleData( object server, object message ) {
 	string dataCopy = message.data;
-	number type = Network.readByteFromData(message.data);
+	number type = Network.readByteFromData(dataCopy);
 	switch( type ) {
-		case Network.MESSAGE_PLAYER_UPDATE: HandlePlayerUpdate(server, dataCopy); break;
+		case Network.MESSAGE_PLAYER_UPDATE:   HandlePlayerUpdate(server, message); break;
+		case Network.MESSAGE_INITIALIZE_JOIN: HandleInitializeJoin(server, message); break;
 	}
 }
 

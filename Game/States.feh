@@ -75,6 +75,8 @@ class MultiplayerState extends State {
 	string host;
 	number port;
 	boolean askAreYouSure;
+	number connectionInitiatedTime;
+	string localPlayerName;
 	
 	function setConnectAutomatically( string host, number port ) {
 		.connectAutomatically = true;
@@ -184,7 +186,7 @@ class MultiplayerState extends State {
 		
 		player = new Player();
 		player.id = message.id;
-		//player.name = message.name;
+		player.name = message.name;
 		player.me = me;
 		player.health = Global.PlayerStartHealth;
 		player.speed = Global.PlayerSpeed;
@@ -211,6 +213,7 @@ class MultiplayerState extends State {
 	
 	function onConnect( object message ) {
 		if( .active ) {
+			Network.send(new Network.InitializeJoinMessage(.localPlayerName));
 		}
 	}
 	function onDisconnectMe( object message ) {
@@ -338,8 +341,11 @@ class MenuState extends State {
 					Network.disconnect();
 					connected = Network.connect(host, port, 'Player');
 					if( connected ) {
+						object multiplayerState = Game.multiplayerState();
 						Console.printLine('waiting for response...');
-						Game.setState(Game.multiplayerState());
+						multiplayerState.connectionInitiatedTime = Time.current;
+						multiplayerState.localPlayerName = playerName;
+						Game.setState(multiplayerState);
 					} else {
 						Console.printLine('failed.');
 					}
