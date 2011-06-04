@@ -11,7 +11,8 @@ namespace Global {
 	/*************************************************************************
 	 * Player
 	 *************************************************************************/
-	string PlayerSprite = "bi_plane.png";
+	string PlayerSpriteLeft = "bi_plane_left.png";
+	string PlayerSpriteRight = "bi_plane_right.png";
 	number PlayerSpeed = 2.3;
 	number PlayerTurningSpeed = 1.2;
 	number PlayerStartX = 200;
