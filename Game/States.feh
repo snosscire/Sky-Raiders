@@ -296,9 +296,35 @@ class MenuState extends State {
 
 			.joinMenu = new ImageMenu();
 			.joinMenu.setImage("join_menu_indexed.png");
-			.joinMenu.addInvisibleTextfield("PlayerNameTextfield", 567, 347, 309, 27, 15);
-			.joinMenu.addInvisibleTextfield("IPAddressTextfield", 567, 419, 309, 27, 15);
-
+			.joinMenu.addInvisibleTextfield("PlayerNameTextfield", 567, 301, 309, 27, 15);
+			.joinMenu.addInvisibleTextfield("HostTextfield", 567, 373, 309, 27, 15);
+			.joinMenu.addInvisibleTextfield("PortTextfield", 567, 446, 309, 27, 15);
+			.joinMenu.getItem("PortTextfield").text = '' + Global.ServerDefaultPort;
+			.joinMenu.addInvisibleButton("BackButton", 212, 562, 250, 100) using {
+				.currentMenu.setActive(false);
+				.mainMenu.setActive(true);
+				.currentMenu = .mainMenu;
+			};
+			.joinMenu.addInvisibleButton("JoinButton", 817, 562, 250, 100) using {
+				string playerName = .joinMenu.getItem("PlayerNameTextfield").text;
+				string host = .joinMenu.getItem("HostTextfield").text;
+				number port = .joinMenu.getItem("PortTextfield").text.toNumber();
+				if( playerName and host and port ) {
+					boolean connected = false;
+					Console.printLine("------------------ connect ----------------------");
+					Console.printLine("connecting to ${host}:${port}...");
+					Console.flush();
+					Network.disconnect();
+					connected = Network.connect(host, port, 'Player');
+					if( connected ) {
+						Console.printLine('waiting for response...');
+						Game.setState(Game.multiplayerState());
+					} else {
+						Console.printLine('failed.');
+					}
+				}
+			};
+			
 			.settingsMenu = new ImageMenu();
 			.settingsMenu.setImage("settings_menu_indexed.png");
 			// show fps
