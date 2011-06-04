@@ -38,16 +38,11 @@ class ScoreScreen {
 		};
 
 		.font.drawText("--------------------", x, lineY);
+		
+		lineY += .font.height + .lineMargin;
 		lineY += .font.height + .lineMargin;
 		
-		if( .roundEnd ) {
-			number seconds = (.restartTime / 1000.0).round();
-			if( seconds < 0 ) {
-				seconds = 0;
-			}
-			.font.drawText("restarting game in... ${seconds} seconds...", x, lineY);
-			.restartTime -= Time.delta;
-		}
+		.roundEnd and .font.drawText("restarting game in 15 seconds...", x, lineY);
 	}
 }
 
