@@ -3,6 +3,7 @@ all:
 		`ferite-config --cflags --libs` \
 		`sdl-config --cflags --libs` \
 		-lSDL_image \
+		-lSDL_mixer \
 		-lSDL_gfx \
 		-lenet \
 		Engine/game.c \
@@ -17,6 +18,7 @@ all:
 		`ferite-config --cflags --libs` \
 		`sdl-config --cflags --libs` \
 		-lSDL_image \
+		-lSDL_mixer \
 		-lSDL_gfx \
 		-lenet \
 		Engine/server.c \

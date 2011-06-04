@@ -374,6 +374,7 @@ class MenuState extends State {
 	object currentMenu;
 	boolean menusInited = false;
 	function init() {
+		Engine.playSound("Resources/music/music.wav");
 		if( not .menusInited ) {
 			.mainMenu = new ImageMenu();
 			.mainMenu.setImage("main_menu_indexed.png");
@@ -529,6 +530,7 @@ class MenuState extends State {
 	}
 	function quit() {
 		.active = false;
+		Engine.stopMusic();
 	}
 	function update() {
 	

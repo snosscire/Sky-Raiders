@@ -310,6 +310,56 @@ FE_NATIVE_FUNCTION( game_engine_print_line )
 	FE_RETURN_VOID;
 }
 
+Mix_Music *music = NULL;
+
+FE_NATIVE_FUNCTION( game_engine_play_sound )
+{
+	FeriteString *file = NULL;
+	ferite_get_parameters(params, 1, &file);
+	/*
+	int audio_rate = 22050;
+	Uint16 audio_format = AUDIO_S16SYS;
+	int audio_channels = 2;
+	int audio_buffers = 4096;
+
+	if( Mix_OpenAudio(audio_rate, audio_format, audio_channels, audio_buffers) != 0 ) {
+		fprintf(stderr, "Unable to initialize audio: %s\n", Mix_GetError());
+	} else {
+		Mix_Chunk *sound = NULL;
+		 
+		sound = Mix_LoadWAV(file->data);
+		if( sound == NULL ) {
+			fprintf(stderr, "Unable to load WAV file: %s\n", Mix_GetError());
+		} else {
+			
+		}
+	}
+	*/
+  /*int audio_rate = 22050;
+  Uint16 audio_format = AUDIO_S16;
+  int audio_channels = 2;
+  int audio_buffers = 4096;
+
+ Mix_QuerySpec(&audio_rate, &audio_format, &audio_channels);*/
+if(music == NULL) {
+music = Mix_LoadMUS(file->data);
+Mix_PlayMusic(music, 0);
+} else {
+	Mix_HaltMusic();
+Mix_FreeMusic(music);
+music = NULL;
+
+}
+
+	FE_RETURN_VOID;
+}
+
+FE_NATIVE_FUNCTION( game_engine_stop_music )
+{
+	Mix_HaltMusic();
+	FE_RETURN_VOID;
+}
+
 void game_engine_init( FeriteScript *script )
 {
 	FeriteNamespaceBucket *nsb = ferite_find_namespace(script, script->mainns, "Engine", FENS_NS);
@@ -338,6 +388,8 @@ void game_engine_init( FeriteScript *script )
 	FeriteFunction *screen_height_function = ferite_create_external_function(script, "screenHeight", game_engine_screen_height, "");
 	FeriteFunction *current_working_directory_function = ferite_create_external_function(script, "currentWorkingDirectory", game_engine_current_working_directory, "");
 	FeriteFunction *draw_rectangle_function = ferite_create_external_function(script, "drawRectangle", game_engine_draw_rectangle, "nnnnnnn");
+	FeriteFunction *play_sound_function = ferite_create_external_function(script, "playSound", game_engine_play_sound, "s");
+	FeriteFunction *stop_music_function = ferite_create_external_function(script, "stopMusic", game_engine_stop_music, "");
 
 	ferite_register_inherited_class(script, engine_namespace, "KeyboardEvent", NULL);
 	ferite_register_inherited_class(script, engine_namespace, "MouseButtonEvent", NULL);
@@ -368,6 +420,8 @@ void game_engine_init( FeriteScript *script )
 	ferite_register_ns_function(script, engine_namespace, screen_height_function);
 	ferite_register_ns_function(script, engine_namespace, current_working_directory_function);
 	ferite_register_ns_function(script, engine_namespace, draw_rectangle_function);
+	ferite_register_ns_function(script, engine_namespace, play_sound_function);
+	ferite_register_ns_function(script, engine_namespace, stop_music_function);
 	
 	game_engine_key_init(script, engine_namespace);
 	game_engine_image_init(script, engine_namespace);
