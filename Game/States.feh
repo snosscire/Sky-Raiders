@@ -17,6 +17,7 @@ class TestState extends State {
 		.playerCamera = new Camera();
 		
 		.player = new Player();
+		.player.playerSprite = new PlayerSprite(0);
 		.player.controller = new KeyboardPlayerController(.player);
 		.player.controller.keyLeft = Engine.KEY_LEFT;
 		.player.controller.keyRight = Engine.KEY_RIGHT;
@@ -222,6 +223,8 @@ class MultiplayerState extends State {
 		player.y = message.y;
 		player.spawnLocationX = message.x;
 		player.spawnLocationY = message.y;
+		player.color = message.color;
+		player.playerSprite = new PlayerSprite(player.color);
 		
 		if( me ) {
 			//Console.printLine('using keyboard controller.');

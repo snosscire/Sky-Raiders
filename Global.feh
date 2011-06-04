@@ -13,6 +13,7 @@ namespace Global {
 	 *************************************************************************/
 	string PlayerSpriteLeft = "bi_plane_left.png";
 	string PlayerSpriteRight = "bi_plane_right.png";
+	array  PlayerSprites;
 	number PlayerSpeed = 2.5;
 	number PlayerTurningSpeed = 1.4;
 	number PlayerStartX = 200;
@@ -57,6 +58,20 @@ namespace Global {
 	 *************************************************************************/
 	array Maps;
 }
+
+/*************************************************************************
+ * Player sprites
+ *************************************************************************/
+Global.PlayerSprites = [
+	[ "left" => "planes/bi_plane_left_red.png", "right" => "planes/bi_plane_right_red.png" ],
+	[ "left" => "planes/bi_plane_left_blue.png", "right" => "planes/bi_plane_right_blue.png" ],
+	[ "left" => "planes/bi_plane_left_yellow.png", "right" => "planes/bi_plane_right_yellow.png" ],
+	[ "left" => "planes/bi_plane_left_purple.png", "right" => "planes/bi_plane_right_purple.png" ],
+	[ "left" => "planes/bi_plane_left_orange.png", "right" => "planes/bi_plane_right_orange.png" ],
+	[ "left" => "planes/bi_plane_left_green.png", "right" => "planes/bi_plane_right_green.png" ],
+	[ "left" => "planes/bi_plane_left_lightGreen.png", "right" => "planes/bi_plane_right_lightGreen.png" ],
+	[ "left" => "planes/bi_plane_left_pink.png", "right" => "planes/bi_plane_right_pink.png" ]
+];
 
 /*************************************************************************
  * Maps

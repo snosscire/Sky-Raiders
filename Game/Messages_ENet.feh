@@ -25,6 +25,7 @@ namespace modifies Network {
 		string name;
 		number x;
 		number y;
+		number color;
 		static function fromPlayer( object player ) {
 			object message = new Network.NewPlayerMessage();
 			message.type = Network.MESSAGE_NEW_PLAYER;
@@ -32,6 +33,7 @@ namespace modifies Network {
 			message.name = player.name;
 			message.x = player.x;
 			message.y = player.y;
+			message.color = player.color;
 			return message;
 		}
 		static function fromData( string& data, boolean hasType ) {
@@ -41,6 +43,7 @@ namespace modifies Network {
 			message.name = Network.readStringFromData(data);
 			message.x = Network.readDoubleFromData(data);
 			message.y = Network.readDoubleFromData(data);
+			message.color = Network.readByteFromData(data);
 			return message;
 		}
 		function toData() {
@@ -50,6 +53,7 @@ namespace modifies Network {
 			Network.addStringToData(data, .name);
 			Network.addDoubleToData(data, .x);
 			Network.addDoubleToData(data, .y);
+			Network.addByteToData(data, .color);
 			return data;
 		}
 	}

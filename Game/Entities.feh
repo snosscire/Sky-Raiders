@@ -82,9 +82,10 @@ class PlayerSprite {
 	object rightSprite;
 	object currentSprite;
 	number angle;
-	constructor {
-		.leftSprite = Engine.loadImageResource(Global.PlayerSpriteLeft);
-		.rightSprite = Engine.loadImageResource(Global.PlayerSpriteRight);
+	constructor( number color ) {
+		array sprites = Global.PlayerSprites[color];
+		.leftSprite = Engine.loadImageResource(sprites['left']);
+		.rightSprite = Engine.loadImageResource(sprites['right']);
 		.currentSprite = .rightSprite;
 	}
 	function update( number angle, number deltaTime ) {
@@ -151,9 +152,9 @@ class Player extends Entity {
 	
 	number spawnLocationX;
 	number spawnLocationY;
+	number color;
 	
 	constructor {
-		.playerSprite = new PlayerSprite();
 		.health = Global.PlayerStartHealth;;
 		.stalling = false;
 		for( number i = 0; i < Global.PlayerSmokePuffOnScreenAmount; i++ ) {
