@@ -161,5 +161,46 @@ namespace modifies Network {
 			return data;
 		}
 	}
+	class PlayerDisconnectMessage {
+		number type;
+		number id;
+		constructor( object player ) {
+			.type = Network.MESSAGE_PLAYER_DISCONNECT;
+			.id = player.id;
+		}
+		static function fromData( string& data, boolean hasType ) {
+			object message = new Network.PlayerDisconnectMessage();
+			message.type = (hasType ? Network.readByteFromData(data) : Network.MESSAGE_PLAYER_DISCONNECT);
+			message.id = Network.readByteFromData(data);
+			return message;
+		}
+		function toData() {
+			string data;
+			Network.addByteToData(data, .type);
+			Network.addByteToData(data, .id);
+			return data;
+		}
+	}
+	class GameRestartMessage {
+		number type;
+		//string map;
+		//constructor( string map ) {
+		constructor {
+			.type = Network.MESSAGE_GAME_RESTART;
+			//.map = map;
+		}
+		static function fromData( string& data, boolean hasType ) {
+			object message = new Network.GameRestartMessage();
+			message.type = (hasType ? Network.readByteFromData(data) : Network.MESSAGE_GAME_RESTART);
+			//message.map = Network.readStringFromData(data);
+			return message;
+		}
+		function toData() {
+			string data;
+			Network.addByteToData(data, .type);
+			//Network.addByteToData(data, .map);
+			return data;
+		}
+	}
 }
 

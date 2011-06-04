@@ -96,6 +96,8 @@ class MultiplayerState extends State {
 			MessageHandler.registerListener(Network.MESSAGE_NEW_PLAYER, self);
 			MessageHandler.registerListener(Network.MESSAGE_PLAYER_HIT, self);
 			MessageHandler.registerListener(Network.MESSAGE_ROUND_END, self);
+			MessageHandler.registerListener(Network.MESSAGE_GAME_RESTART, self);
+			MessageHandler.registerListener(Network.MESSAGE_PLAYER_DISCONNECT, self);
 			.listenersRegistered = true;
 		}
 		.currentMap = Map.load("Test");
@@ -128,9 +130,11 @@ class MultiplayerState extends State {
 		.currentMap and .currentMap.unload();
 		.currentMap = null;
 		.playerCamera = null;
+		.localPlayer and Network.send(new Network.PlayerDisconnectMessage(.localPlayer));
 		.localPlayer = null;
 		.players = [];
 		Game.players = [];
+		Network.flush();
 		Network.disconnect();
 	}
 	function update() {
@@ -244,6 +248,19 @@ class MultiplayerState extends State {
 			Game.setState(Game.menuState());
 		}
 	}
+	function onPlayerDisconnect( object message ) {
+		number index;
+		object player;
+		for( number i = 0; i < .players.size(); i++ ) {
+			if( .players[i].id == message.id  ) {
+				index = i;
+				player = .players[i];
+			}
+		}
+		Console.printLine("${player.name} disconnected.");
+		.players.deleteAt(index);
+		Game.players.deleteAt(index);
+	}
 	function onNewPlayer( object message ) {
 		if( .active ) {
 			boolean me = false;
@@ -273,6 +290,21 @@ class MultiplayerState extends State {
 		.scoreScreen.setWinner(.players["Player/${message.winner}"].name);
 		.showScoreScreen = true;
 		.paused = true;
+	}
+	function onGameRestart( object message ) {
+		.players.each() using ( player ) {
+			player.x = Global.PlayerStartX;
+			player.y = Global.PlayerStartY;
+			player.angle = Global.PlayerStartAngle;
+			player.spriteAngle = Global.PlayerStartAngle;
+			player.speed = Global.PlayerSpeed;
+			player.turningSpeed = Global.PlayerTurningSpeed;
+			player.health = Global.PlayerStartHealth;
+			player.score = 0;
+		};
+		.paused = false;
+		.showScoreScreen = false;
+		.scoreScreen.roundEnd = false;
 	}
 }
 

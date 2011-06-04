@@ -1,10 +1,12 @@
 namespace modifies Network {
-	number MESSAGE_DISCONNECT_ME   = 155;
-	number MESSAGE_PLAYER_UPDATE   = 154;
-	number MESSAGE_NEW_PLAYER      = 153;
-	number MESSAGE_INITIALIZE_JOIN = 152;
-	number MESSAGE_PLAYER_HIT      = 151;
-	number MESSAGE_ROUND_END       = 150;
+	number MESSAGE_DISCONNECT_ME     = 155;
+	number MESSAGE_PLAYER_UPDATE     = 154;
+	number MESSAGE_NEW_PLAYER        = 153;
+	number MESSAGE_INITIALIZE_JOIN   = 152;
+	number MESSAGE_PLAYER_HIT        = 151;
+	number MESSAGE_ROUND_END         = 150;
+	number MESSAGE_PLAYER_DISCONNECT = 149;
+	number MESSAGE_GAME_RESTART      = 148;
 	
 	object client;
 	function currentClient() {
@@ -82,17 +84,22 @@ namespace modifies Network {
 	}
 	
 	function send( object message ) {
-		.client.send(message.toData());
+		.client and .client.send(message.toData());
+	}
+	function flush() {
+		.client and .client.flush();
 	}
 	
 	function createDataMessage( string& data ) {
 		object message;
 		number type = Network.readByteFromData(data);
 		switch( type ) {
-			case Network.MESSAGE_NEW_PLAYER:    message = Network.NewPlayerMessage.fromData(data, false); break;
-			case Network.MESSAGE_PLAYER_UPDATE: message = Network.PlayerUpdateMessage.fromData(data, false); break;
-			case Network.MESSAGE_PLAYER_HIT:    message = Network.PlayerHitMessage.fromData(data, false); break;
-			case Network.MESSAGE_ROUND_END:     message = Network.RoundEndMessage.fromData(data, false); break;
+			case Network.MESSAGE_NEW_PLAYER:        message = Network.NewPlayerMessage.fromData(data, false); break;
+			case Network.MESSAGE_PLAYER_UPDATE:     message = Network.PlayerUpdateMessage.fromData(data, false); break;
+			case Network.MESSAGE_PLAYER_HIT:        message = Network.PlayerHitMessage.fromData(data, false); break;
+			case Network.MESSAGE_ROUND_END:         message = Network.RoundEndMessage.fromData(data, false); break;
+			case Network.MESSAGE_GAME_RESTART:      message = Network.GameRestartMessage.fromData(data, false); break;
+			case Network.MESSAGE_PLAYER_DISCONNECT: message = Network.PlayerDisconnectMessage.fromData(data, false); break;
 		}
 		return message;
 	}
@@ -116,10 +123,12 @@ namespace MessageHandler {
 				.listeners["${dataMessage.type}"].each() using ( listener ) {
 					switch( dataMessage.type ) {
 						//case Network.MESSAGE_DISCONNECT_ME: listener.onDisconnectMe(dataMessage); break;
-						case Network.MESSAGE_NEW_PLAYER:    listener.onNewPlayer(dataMessage); break;
-						case Network.MESSAGE_PLAYER_UPDATE: listener.onPlayerUpdate(dataMessage); break;
-						case Network.MESSAGE_PLAYER_HIT:    listener.onPlayerHit(dataMessage); break;
-						case Network.MESSAGE_ROUND_END:     listener.onRoundEnd(dataMessage); break;
+						case Network.MESSAGE_NEW_PLAYER:        listener.onNewPlayer(dataMessage); break;
+						case Network.MESSAGE_PLAYER_UPDATE:     listener.onPlayerUpdate(dataMessage); break;
+						case Network.MESSAGE_PLAYER_HIT:        listener.onPlayerHit(dataMessage); break;
+						case Network.MESSAGE_ROUND_END:         listener.onRoundEnd(dataMessage); break;
+						case Network.MESSAGE_PLAYER_DISCONNECT: listener.onPlayerDisconnect(dataMessage); break;
+						case Network.MESSAGE_GAME_RESTART:      listener.onGameRestart(dataMessage); break;
 					}
 				};
 			}

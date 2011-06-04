@@ -38,6 +38,14 @@ FE_NATIVE_FUNCTION( game_engine_network_server_destroy )
 	FE_RETURN_VOID;
 }
 
+FE_NATIVE_FUNCTION( game_engine_network_server_flush )
+{
+	FeriteObject *self = FE_CONTAINER_TO_OBJECT;
+	ENetHost *server = (ENetHost *)self->odata;
+	enet_host_flush(server);
+	FE_RETURN_VOID;
+}
+
 FE_NATIVE_FUNCTION( game_engine_network_server_service )
 {
 	FeriteObject *self = FE_CONTAINER_TO_OBJECT;
@@ -60,12 +68,16 @@ FE_NATIVE_FUNCTION( game_engine_network_server_service )
 			case ENET_EVENT_TYPE_CONNECT:
 			{
 				FeriteVariable *peer_variable = NULL;
+				FeriteVariable *session_id_variable = NULL;
 				FeriteVariable *type_variable = NULL;
-
+				
+				session_id_variable = ferite_create_number_long_variable(script, "sessionID", event.peer->sessionID, FE_STATIC);
 				type_variable = ferite_create_number_long_variable(script, "type", event.type, FE_STATIC);
 				
 				peer_variable = ferite_build_object(script, (ferite_find_namespace(script, script->mainns, "Network.Peer", FENS_CLS))->data);
 				message_variable = ferite_build_object(script, (ferite_find_namespace(script, script->mainns, "Network.ConnectMessage", FENS_CLS))->data);
+				
+				ferite_object_set_var(script, VAO(peer_variable), "sessionID", session_id_variable);
 				
 				ferite_object_set_var(script, VAO(message_variable), "type", type_variable);
 				ferite_object_set_var(script, VAO(message_variable), "peer", peer_variable);
@@ -79,12 +91,16 @@ FE_NATIVE_FUNCTION( game_engine_network_server_service )
 			case ENET_EVENT_TYPE_DISCONNECT:
 			{
 				FeriteVariable *peer_variable = NULL;
+				FeriteVariable *session_id_variable = NULL;
 				FeriteVariable *type_variable = NULL;
 				
+				session_id_variable = ferite_create_number_long_variable(script, "sessionID", event.peer->sessionID, FE_STATIC);
 				type_variable = ferite_create_number_long_variable(script, "type", event.type, FE_STATIC);
 				
 				peer_variable = ferite_build_object(script, (ferite_find_namespace(script, script->mainns, "Network.Peer", FENS_CLS))->data);;
 				message_variable = ferite_build_object(script, (ferite_find_namespace(script, script->mainns, "Network.DisconnectMessage", FENS_CLS))->data);
+				
+				ferite_object_set_var(script, VAO(peer_variable), "sessionID", session_id_variable);
 				
 				ferite_object_set_var(script, VAO(message_variable), "type", type_variable);
 				ferite_object_set_var(script, VAO(message_variable), "peer", peer_variable);
@@ -98,14 +114,18 @@ FE_NATIVE_FUNCTION( game_engine_network_server_service )
 			case ENET_EVENT_TYPE_RECEIVE:
 			{
 				FeriteVariable *peer_variable = NULL;
+				FeriteVariable *session_id_variable = NULL;
 				FeriteVariable *type_variable = NULL;
 				FeriteVariable *data_variable = NULL;
 
+				session_id_variable = ferite_create_number_long_variable(script, "sessionID", event.peer->sessionID, FE_STATIC);
 				type_variable = ferite_create_number_long_variable(script, "type", event.type, FE_STATIC);
 				data_variable = ferite_create_string_variable_from_ptr(script, "data", (char *)event.packet->data, event.packet->dataLength, FE_CHARSET_DEFAULT, FE_STATIC);
 				
 				peer_variable = ferite_build_object(script, (ferite_find_namespace(script, script->mainns, "Network.Peer", FENS_CLS))->data);
 				message_variable = ferite_build_object(script, (ferite_find_namespace(script, script->mainns, "Network.DataMessage", FENS_CLS))->data);
+				
+				ferite_object_set_var(script, VAO(peer_variable), "sessionID", session_id_variable);
 				
 				ferite_object_set_var(script, VAO(message_variable), "type", type_variable);
 				ferite_object_set_var(script, VAO(message_variable), "peer", peer_variable);
@@ -192,6 +212,14 @@ FE_NATIVE_FUNCTION( game_engine_network_client_destroy )
 	enet_host_destroy(client->host);
 	free(client);
 	self->odata = NULL;
+	FE_RETURN_VOID;
+}
+
+FE_NATIVE_FUNCTION( game_engine_network_client_flush )
+{
+	FeriteObject *self = FE_CONTAINER_TO_OBJECT;
+	Client *client = (Client *)self->odata;
+	enet_host_flush(client->host);
 	FE_RETURN_VOID;
 }
 
@@ -298,21 +326,25 @@ void game_engine_network_init( FeriteScript *script )
 	
 	FeriteFunction *server_start_function = ferite_create_external_function(script, "start", game_engine_network_server_start, "n");
 	FeriteFunction *server_destroy_function = ferite_create_external_function(script, "destroy", game_engine_network_server_destroy, "");
+	FeriteFunction *server_flush_function = ferite_create_external_function(script, "flush", game_engine_network_server_flush, "");
 	FeriteFunction *server_service_function = ferite_create_external_function(script, "service", game_engine_network_server_service, "n");
 	FeriteFunction *server_send_function = ferite_create_external_function(script, "send", game_engine_network_server_send, "os");
 	
 	ferite_register_class_function(script, server_class, server_start_function, FE_TRUE);
 	ferite_register_class_function(script, server_class, server_destroy_function, FE_FALSE);
+	ferite_register_class_function(script, server_class, server_flush_function, FE_FALSE);
 	ferite_register_class_function(script, server_class, server_service_function, FE_FALSE);
 	ferite_register_class_function(script, server_class, server_send_function, FE_FALSE);
 	
 	FeriteFunction *client_start_function = ferite_create_external_function(script, "start", game_engine_network_client_start, "sn");
 	FeriteFunction *client_destroy_function = ferite_create_external_function(script, "destroy", game_engine_network_client_destroy, "");
+	FeriteFunction *client_flush_function = ferite_create_external_function(script, "flush", game_engine_network_client_flush, "");
 	FeriteFunction *client_service_function = ferite_create_external_function(script, "service", game_engine_network_client_service, "n");
 	FeriteFunction *client_send_function = ferite_create_external_function(script, "send", game_engine_network_client_send, "s");
 	
 	ferite_register_class_function(script, client_class, client_start_function, FE_TRUE);
 	ferite_register_class_function(script, client_class, client_destroy_function, FE_FALSE);
+	ferite_register_class_function(script, client_class, client_flush_function, FE_FALSE);
 	ferite_register_class_function(script, client_class, client_service_function, FE_FALSE);
 	ferite_register_class_function(script, client_class, client_send_function, FE_FALSE);
 }

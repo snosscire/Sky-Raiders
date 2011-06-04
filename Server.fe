@@ -12,7 +12,9 @@ namespace Time {
 
 namespace GameServer {
 	number nextID = 255;
-	number maxTime = 20000;
+	number roundTime;
+	number restartTime;
+	number nextDisconnectCheck;
 	array players;
 }
 
@@ -27,6 +29,7 @@ class Player {
 	number speed;
 	number health;
 	number score;
+	number lastUpdate;
 }
 
 function GetNextID() {
@@ -39,8 +42,35 @@ function HandleConnect( object server, object connectMessage ) {
 	Engine.printLine('User connected - waiting for initialize message...');
 }
 
+function DisconnectPlayer( object server, number id ) {
+	object playerDisconnectMessage;
+	string playerDisconnectMessageData;
+	object player;
+	number index;
+	for( number i = 0; i < GameServer.players.size(); i++ ) {
+		object p = GameServer.players[i];
+		if( p.id == id ) {
+			index = i;
+			player = p;
+			break;
+		}
+	}
+	Engine.printLine("Player ${player.name} disconnected.");
+	playerDisconnectMessage = new Network.PlayerDisconnectMessage(player);
+	playerDisconnectMessageData = playerDisconnectMessage.toData();
+	GameServer.players.deleteAt(index);
+	GameServer.players.each() using ( p ) {
+		server.send(p.peer, playerDisconnectMessageData);
+	};
+}
+
 function HandleDisconnect( object server, object message ) {
 	Engine.printLine('User disconnected.');
+}
+
+function HandlePlayerDisconnect( object server, object dataMessage ) {
+	object message = Network.PlayerDisconnectMessage.fromData(dataMessage.data, true);
+	DisconnectPlayer(server, message.id);
 }
 
 function HandleInitializeJoin( object server, object dataMessage ) {
@@ -83,18 +113,21 @@ function HandleInitializeJoin( object server, object dataMessage ) {
 function HandlePlayerUpdate( object server, object dataMessage ) {
 	string dataCopy = dataMessage.data;
 	object message = Network.PlayerUpdateMessage.fromData(dataMessage.data, true);
-	object player = GameServer.players["Player/${message.id}"];
-	player.x = message.x;
-	player.y = message.y;
-	player.angle = message.angle;
-	player.spriteAngle = message.spriteAngle;
-	player.speed = message.speed;
-	player.health = message.health;
-	GameServer.players.each() using ( player ) {
-		if( player.id != message.id ) {
-			server.send(player.peer, dataCopy);
-		}
-	};
+	if( GameServer.players.keyExists("Player/${message.id}") ) {
+		object player = GameServer.players["Player/${message.id}"];
+		player.x = message.x;
+		player.y = message.y;
+		player.angle = message.angle;
+		player.spriteAngle = message.spriteAngle;
+		player.speed = message.speed;
+		player.health = message.health;
+		player.lastUpdate = Time.current;
+		GameServer.players.each() using ( player ) {
+			if( player.id != message.id ) {
+				server.send(player.peer, dataCopy);
+			}
+		};
+	}
 }
 
 function HandlePlayerHit( object server, object dataMessage ) {
@@ -120,35 +153,56 @@ function HandleData( object server, object message ) {
 	string dataCopy = message.data;
 	number type = Network.readByteFromData(dataCopy);
 	switch( type ) {
-		case Network.MESSAGE_PLAYER_UPDATE:   HandlePlayerUpdate(server, message); break;
-		case Network.MESSAGE_PLAYER_HIT:      HandlePlayerHit(server, message); break;
-		case Network.MESSAGE_INITIALIZE_JOIN: HandleInitializeJoin(server, message); break;
+		case Network.MESSAGE_PLAYER_UPDATE:     HandlePlayerUpdate(server, message); break;
+		case Network.MESSAGE_PLAYER_HIT:        HandlePlayerHit(server, message); break;
+		case Network.MESSAGE_INITIALIZE_JOIN:   HandleInitializeJoin(server, message); break;
+		case Network.MESSAGE_PLAYER_DISCONNECT: HandlePlayerDisconnect(server, message); break;
 	}
 }
 
 function SendRoundEnd( object server ) {
-	object winner;
-	number highestScore;
-	object message;
-	string data;
+	if( GameServer.players ) {
+		object winner;
+		number highestScore;
+		object message;
+		string data;
+		GameServer.players.each() using ( player ) {
+			if( player.score >= highestScore ) {
+				highestScore = player.score;
+				winner = player;
+			}
+		};
+		Engine.printLine("Winner of this round is ${winner.name}.");
+		message = new Network.RoundEndMessage(winner.id);
+		data = message.toData();
+		GameServer.players.each() using ( player ) {
+			server.send(player.peer, data);
+		};
+		server.flush();
+	}
+}
+
+function SendGameRestart( object server ) {
+	object message = new Network.GameRestartMessage();
+	string data = message.toData();
 	GameServer.players.each() using ( player ) {
-		if( player.score >= highestScore ) {
-			highestScore = player.score;
-			winner = player;
-		}
-	};
-	Engine.printLine("Winner of this round is ${winner.name}.");
-	message = new Network.RoundEndMessage(winner.id);
-	data = message.toData();
-	GameServer.players.each() using ( player ) {
+		player.x = Global.PlayerStartX;
+		player.y = Global.PlayerStartY;
+		player.angle = Global.PlayerStartAngle;
+		player.spriteAngle = Global.PlayerStartAngle;
+		player.health = Global.PlayerStartHealth;
+		player.score = 0;
 		server.send(player.peer, data);
 	};
+	server.flush();
 }
 
 number port = Global.ServerDefaultPort;
 object server = Network.Server.start(port);
 
 boolean roundEndMessageSent = false;
+
+GameServer.roundTime = Global.ServerRoundTime;
 
 Engine.printLine("Trying to start server at port ${port}...");
 
@@ -161,15 +215,29 @@ if( server ) {
 	Time.last = Time.current;
 	Time.delta = 0;
 	
+	GameServer.nextDisconnectCheck = Time.current + 10000;
+	
 	while( true ) {
 		Time.current = Engine.currentTime();
 		Time.delta = Time.current - Time.last;
 		Time.last = Time.current;
 		
-		if( Time.current >= GameServer.maxTime and roundEndMessageSent == false ) {
+		GameServer.roundTime -= Time.delta;
+		
+		if( GameServer.roundTime <= 0 and roundEndMessageSent == false ) {
 			Engine.printLine("Time is up. End of round. See you next time.");
 			SendRoundEnd(server);
+			GameServer.restartTime = Global.ServerRestartTime;
 			roundEndMessageSent = true;
+		} else {
+			if( roundEndMessageSent ) {
+				GameServer.restartTime -= Time.delta;
+				if( GameServer.restartTime <= 0 ) {
+					GameServer.roundTime = Global.ServerRoundTime;
+					roundEndMessageSent = false;
+					SendGameRestart(server);
+				}
+			}
 		}
 		while( message = server.service(10) ) {
 			if( not roundEndMessageSent ) {
@@ -179,6 +247,18 @@ if( server ) {
 					case Network.MESSAGE_DATA:       HandleData(server, message); break;
 				}
 			}
+		}
+		if( Time.current >= GameServer.nextDisconnectCheck ) {
+			array inactivePlayers = [];
+			GameServer.players.each() using ( player ) {
+				if( Time.current >= player.lastUpdate + 60000 ) {
+					inactivePlayers[] = player.id;
+				}
+			};
+			inactivePlayers.each() using ( id ) {
+				DisconnectPlayer(server, id);
+			};
+			GameServer.nextDisconnectCheck = Time.current + 10000;
 		}
 	}
 

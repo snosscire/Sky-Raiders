@@ -5,19 +5,23 @@ class ScoreScreen {
 	number height = 155;
 	number lineMargin = 2;
 	string winner;
+	boolean roundEnd;
+	number restartTime;
 	constructor {
 		.font = Engine.loadFont("font-console.png", 10, 10);
 		.fontWinner = Engine.loadFont("font-big.png", 40, 40);
+		.restartTime = Global.ServerRestartTime;
 	}
 	function setWinner( string winner ) {
 		.winner = winner;
+		.roundEnd = true;
 	}
 	function draw() {
 		number x = (Engine.screenWidth() / 2) - (.width / 2);
 		number y = (Engine.screenHeight() / 2) - (.height / 2);
 		number lineY = y;
 		
-		if( .winner ) {
+		if( .roundEnd ) {
 			string text = "winner... ${.winner}";
 			.fontWinner.drawText(text, (Engine.screenWidth() / 2) - (.fontWinner.textWidth(text) / 2), y - (.fontWinner.height * 2));
 		}
@@ -32,6 +36,18 @@ class ScoreScreen {
 			.font.drawText(text, x, lineY);
 			lineY += .font.height + .lineMargin;
 		};
+
+		.font.drawText("--------------------", x, lineY);
+		lineY += .font.height + .lineMargin;
+		
+		if( .roundEnd ) {
+			number seconds = (.restartTime / 1000.0).round();
+			if( seconds < 0 ) {
+				seconds = 0;
+			}
+			.font.drawText("restarting game in... ${seconds} seconds...", x, lineY);
+			.restartTime -= Time.delta;
+		}
 	}
 }
 
