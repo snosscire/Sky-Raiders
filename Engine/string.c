@@ -64,6 +64,21 @@ FE_NATIVE_FUNCTION( ferite_string_to_number ) {
 	FE_RETURN_LONG(0);
 }
 
+FE_NATIVE_FUNCTION( ferite_string_to_lower ) {
+	FeriteString *string = NULL;
+	FeriteVariable *new_variable = NULL;
+	FeriteString *new_string = NULL;
+	ferite_get_parameters(params, 1, &string);
+	new_variable = ferite_create_string_variable(script, "string:toLower", string, FE_STATIC);
+	new_string = VAS(new_variable);
+	int i = 0;
+	for( i = 0; i < new_string->length; i++ )
+	{
+		new_string->data[i] = tolower(new_string->data[i]);
+	}
+	FE_RETURN_VAR(new_variable);
+}
+
 void ferite_string_init( FeriteScript *script )
 {
 	FeriteNamespaceBucket *nsb = ferite_find_namespace(script, script->mainns, "String", FENS_NS);
@@ -73,9 +88,11 @@ void ferite_string_init( FeriteScript *script )
 	FeriteFunction *byte_to_number_function = ferite_create_external_function(script, "byteToNumber", ferite_string_byte_to_number, "s");
 	FeriteFunction *number_to_byte_function = ferite_create_external_function(script, "numberToByte", ferite_string_number_to_byte, "n");
 	FeriteFunction *to_number_function = ferite_create_external_function(script, "toNumber", ferite_string_to_number, "s");
+	FeriteFunction *to_lower_function = ferite_create_external_function(script, "toLower", ferite_string_to_lower, "s");
 	ferite_register_ns_function(script, string_namespace, length_function);
 	ferite_register_ns_function(script, string_namespace, byte_to_number_function);
 	ferite_register_ns_function(script, string_namespace, number_to_byte_function);
 	ferite_register_ns_function(script, string_namespace, to_number_function);
+	ferite_register_ns_function(script, string_namespace, to_lower_function);
 }
 

@@ -296,6 +296,8 @@ class MenuState extends State {
 
 			.joinMenu = new ImageMenu();
 			.joinMenu.setImage("join_menu_indexed.png");
+			.joinMenu.addInvisibleTextfield("PlayerNameTextfield", 567, 347, 309, 27, 15);
+			.joinMenu.addInvisibleTextfield("IPAddressTextfield", 567, 419, 309, 27, 15);
 
 			.settingsMenu = new ImageMenu();
 			.settingsMenu.setImage("settings_menu_indexed.png");

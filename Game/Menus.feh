@@ -150,6 +150,16 @@ class ImageMenu {
 		slider.block = recipient();
 		.items[name] = slider;
 	}
+	function addInvisibleTextfield( string name, number x, number y, number width, number height, number maxLength ) {
+		object textfield = new InvisibleTextfieldMenuItem();
+		textfield.menu = self;
+		textfield.x = x;
+		textfield.y = y;
+		textfield.width = width;
+		textfield.height = height;
+		textfield.maxLength = maxLength;
+		.items[name] = textfield;
+	}
 	function addImage( string name, number x, number y ) {
 		object image = new MenuImage();
 		image.menu = self;
@@ -165,6 +175,7 @@ class ImageMenu {
 	function registerListeners() {
 		.items.each() using ( item ) {
 			if( item.registerListeners ) {
+				EventHandler.registerListener(Engine.EVENT_KEYDOWN, item);
 				EventHandler.registerListener(Engine.EVENT_MOUSEBUTTONDOWN, item);
 				EventHandler.registerListener(Engine.EVENT_MOUSEBUTTONUP, item);
 				EventHandler.registerListener(Engine.EVENT_MOUSEMOTION, item);
@@ -184,6 +195,7 @@ class InvisibleMenuItem {
 	function onButtonDown( object event );
 	function onButtonUp( object event );
 	function onMouseMotion( object event );
+	function onKeyDown( object event );
 }
 
 class InvisibleButtonMenuItem extends InvisibleMenuItem {
@@ -318,3 +330,94 @@ class InvisibleSliderMenuItem extends InvisibleMenuItem {
 	}
 }
 
+class InvisibleTextfieldMenuItem extends InvisibleMenuItem {
+	object menu;
+	number x;
+	number y;
+	number width;
+	number height;
+	object font;
+	number maxLength;
+	string text;
+	boolean selected;
+	constructor {
+		.font = Engine.loadFont("font-menu.png", 20, 20);
+	}
+	function draw() {
+		//Engine.drawRectangle(.x + ((Engine.screenWidth() - .menu.image.width()) / 2), .y, .width, .height, 255, 0, 0);
+		.font.drawText((.selected ? "${.text}_" : .text), .x + 2 + ((Engine.screenWidth() - .menu.image.width()) / 2), .y + 4);
+	}
+	function onButtonDown( object event ) {
+		if( .menu.active and (not Console.active) ) {
+			if( event.button == Engine.BUTTON_LEFT ) {
+				number x = .x + ((Engine.screenWidth() - .menu.image.width()) / 2);
+				if( event.x >= x and event.x <= (x + .width) and event.y >= .y and event.y <= (.y + .height) ) {
+					.selected = true;
+				} else {
+					.selected = false;
+				}
+			}
+		}
+	}
+	function onKeyDown( object event ) {
+		if( .menu.active and (not Console.active) and .selected ) {
+			switch( event.key ) {
+				case Engine.KEY_a:
+				case Engine.KEY_b:
+				case Engine.KEY_c:
+				case Engine.KEY_d:
+				case Engine.KEY_e:
+				case Engine.KEY_f:
+				case Engine.KEY_g:
+				case Engine.KEY_h:
+				case Engine.KEY_i:
+				case Engine.KEY_j:
+				case Engine.KEY_k:
+				case Engine.KEY_l:
+				case Engine.KEY_m:
+				case Engine.KEY_n:
+				case Engine.KEY_o:
+				case Engine.KEY_p:
+				case Engine.KEY_q:
+				case Engine.KEY_r:
+				case Engine.KEY_s:
+				case Engine.KEY_t:
+				case Engine.KEY_u:
+				case Engine.KEY_v:
+				case Engine.KEY_w:
+				case Engine.KEY_x:
+				case Engine.KEY_y:
+				case Engine.KEY_z:
+				case Engine.KEY_0:
+				case Engine.KEY_1:
+				case Engine.KEY_2:
+				case Engine.KEY_3:
+				case Engine.KEY_4:
+				case Engine.KEY_5:
+				case Engine.KEY_6:
+				case Engine.KEY_7:
+				case Engine.KEY_8:
+				case Engine.KEY_9:
+				case Engine.KEY_COMMA:
+				case Engine.KEY_MINUS:
+				case Engine.KEY_PERIOD:
+				case Engine.KEY_SLASH:
+				case Engine.KEY_SPACE: {
+					if( .text.length() < .maxLength ) {
+						.text += String.numberToByte(event.unicode & 0x7F).toLower();
+					}
+					break;
+				}
+				case Engine.KEY_BACKSPACE: {
+					number length = .text.length();
+					if( length == 1 ) {
+						.text = "";
+					} else if( length > 1 ) {
+						.text = .text[..(length - 2)];
+					}
+					break;
+				}
+			}
+		}
+	}
+}
