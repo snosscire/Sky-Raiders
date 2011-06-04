@@ -9,6 +9,12 @@ class Console {
 	static object font;
 	static string currentLine;
 	static array previousLines;
+	static number height;
+	static boolean canToggle = true;
+	
+	static function setHeight( number height ) {
+		.height = height;
+	}
 	
 	static function init( object font ) {
 		object this = new Console();
@@ -36,7 +42,9 @@ class Console {
 	}
 	
 	static function toggle() {
-		.active = (not .active);
+		if( .canToggle ) {
+			.active = (not .active);
+		}
 	}
 	static function printLine( string line ) {
 		if( .history.size() == Console.HISTORY_SIZE )
@@ -52,9 +60,8 @@ class Console {
 		if( .active ) {
 			string promptLine = "]${.currentLine}_";
 			number currentHistoryLineY = 0;
-			number halfScreenHeight = Engine.screenHeight() / 2;
 			number borderX = 0;
-			number backgroundY = halfScreenHeight;/* - .background.height();*/
+			number backgroundY = .height;/* - .background.height();*/
 			while( backgroundY > 0 ) {
 				number backgroundX = 0;
 				backgroundY -= .background.height();
@@ -64,11 +71,11 @@ class Console {
 				}
 			}
 			while( borderX < Engine.screenWidth() ) {
-				Engine.drawImage(.border, borderX, halfScreenHeight);
+				Engine.drawImage(.border, borderX, .height);
 				borderX += .border.width();
 			}
-			.font.drawText(promptLine, 0, halfScreenHeight - .font.height);
-			currentHistoryLineY = halfScreenHeight - .font.height - .font.height - Console.LINE_MARGIN;
+			.font.drawText(promptLine, 0, .height - .font.height);
+			currentHistoryLineY = .height - .font.height - .font.height - Console.LINE_MARGIN;
 			for( number i = (.history.size() - 1); i >= 0 and currentHistoryLineY > 0; i-- ) {
 				.font.drawText(.history[i], 0, currentHistoryLineY);
 				currentHistoryLineY -= .font.height + Console.LINE_MARGIN;

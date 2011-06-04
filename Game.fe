@@ -56,6 +56,7 @@ class modifies Game {
 			font = Engine.loadFont(Global.FontFPS, 10, 10);
 			
 			Console.init(Engine.loadFont(Global.FontConsole, 10, 10, -2));
+			Console.setHeight(Engine.screenHeight() / 2);
 			//Console.init(Engine.loadFont('font-bachler.bmp', 10, 10));
 			//Console.init(font);
 			

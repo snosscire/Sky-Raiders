@@ -101,7 +101,7 @@ class MultiplayerState extends State {
 			MessageHandler.registerListener(Network.MESSAGE_PLAYER_DISCONNECT, self);
 			.listenersRegistered = true;
 		}
-		.currentMap = Map.load("Test");
+		//.currentMap = Map.load("Test");
 		.playerCamera = new Camera();
 		.showScoreScreen = false;
 		.scoreScreen = new ScoreScreen();
@@ -272,6 +272,7 @@ class MultiplayerState extends State {
 			if( not .connected ) {
 				me = true;
 				.connected = true;
+				.currentMap = Map.load(message.map);
 			}
 			.createPlayer(message, me);
 		}

@@ -1,8 +1,16 @@
 uses 'Global.feh';
 uses 'Game/Array.feh';
 uses 'Game/String.feh';
+uses 'Game/Engine.feh';
 uses 'Game/Network_ENet.feh';
 uses 'Game/Messages_ENet.feh';
+uses 'Game/Menus.feh';
+uses 'Game/Console.feh';
+uses 'Game/Events.feh';
+
+global {
+	boolean runServer = true;
+}
 
 namespace Time {
 	number current;
@@ -45,7 +53,9 @@ function GetNextID() {
 }
 
 function GetNextSpawnLocation() {
-	array spawn = Global.Maps[GameServer.mapName]['spawns'][GameServer.spawnLocationIndex];
+	array spawn;
+	Engine.printLine("Map: ${GameServer.mapName}");
+	spawn = Global.Maps[GameServer.mapName]['spawns'][GameServer.spawnLocationIndex];
 	GameServer.spawnLocationIndex++;
 	if( GameServer.spawnLocationIndex > 7 ) {
 		GameServer.spawnLocationIndex = 0;
@@ -63,7 +73,7 @@ function GetNextColor() {
 }
 
 function HandleConnect( object server, object connectMessage ) {
-	Engine.printLine('User connected - waiting for initialize message...');
+	Console.printLine('user connected - waiting for initialize message...');
 }
 
 function DisconnectPlayer( object server, number id ) {
@@ -79,7 +89,7 @@ function DisconnectPlayer( object server, number id ) {
 			break;
 		}
 	}
-	Engine.printLine("Player ${player.name} disconnected.");
+	Console.printLine("player ${player.name} disconnected.");
 	playerDisconnectMessage = new Network.PlayerDisconnectMessage(player);
 	playerDisconnectMessageData = playerDisconnectMessage.toData();
 	GameServer.players.deleteAt(index);
@@ -89,7 +99,7 @@ function DisconnectPlayer( object server, number id ) {
 }
 
 function HandleDisconnect( object server, object message ) {
-	Engine.printLine('User disconnected.');
+	Console.printLine('user disconnected.');
 }
 
 function HandlePlayerDisconnect( object server, object dataMessage ) {
@@ -104,7 +114,7 @@ function HandleInitializeJoin( object server, object dataMessage ) {
 	string newPlayerMessageData;
 	array spawnLocation = GetNextSpawnLocation();
 
-	Engine.printLine('Initialize Join message recieved - creating player...');
+	Console.printLine('initialize join message recieved - creating player...');
 	
 	newPlayer = new Player();
 	newPlayer.peer = dataMessage.peer;
@@ -119,16 +129,16 @@ function HandleInitializeJoin( object server, object dataMessage ) {
 	newPlayer.speed = Global.PlayerSpeed;
 	newPlayer.color = GetNextColor();
 
-	Engine.printLine("Created player ${newPlayer.name} (${newPlayer.id}).");
+	Console.printLine("created player ${newPlayer.name} (${newPlayer.id}).");
 	
-	newPlayerMessage = Network.NewPlayerMessage.fromPlayer(newPlayer);
+	newPlayerMessage = Network.NewPlayerMessage.fromPlayer(newPlayer, GameServer.mapName);
 	newPlayerMessageData = newPlayerMessage.toData();
 	
 	// Tell the new player that it has joined the game.
 	server.send(newPlayer.peer, newPlayerMessageData);
 	// Tell the new player about the players that are already connected.
 	GameServer.players.each() using ( player ) {
-		server.send(newPlayer.peer, Network.NewPlayerMessage.fromPlayer(player).toData());
+		server.send(newPlayer.peer, Network.NewPlayerMessage.fromPlayer(player, GameServer.mapName).toData());
 	};
 	// Tell the already connected players that a new player has connected.
 	GameServer.players.each() using ( player ) {
@@ -170,9 +180,9 @@ function HandlePlayerHit( object server, object dataMessage ) {
 		}
 	};
 	if( player.health > 0 ) {
-		Engine.printLine("${shooter.name} (${shooter.id}) hit ${player.name} (${player.id}) for ${message.damage} damage.");
+		Console.printLine("${shooter.name} (${shooter.id}) hit ${player.name} (${player.id}) for ${message.damage} damage.");
 	} else {
-		Engine.printLine("${shooter.name} (${shooter.id}) killed ${player.name} (${player.id}).");
+		Console.printLine("${shooter.name} (${shooter.id}) killed ${player.name} (${player.id}).");
 		shooter.score++;
 	}
 }
@@ -200,7 +210,7 @@ function SendRoundEnd( object server ) {
 				winner = player;
 			}
 		};
-		Engine.printLine("Winner of this round is ${winner.name}.");
+		Console.printLine("winner of this round is ${winner.name}.");
 		message = new Network.RoundEndMessage(winner.id);
 		data = message.toData();
 		GameServer.players.each() using ( player ) {
@@ -225,36 +235,78 @@ function SendGameRestart( object server ) {
 	server.flush();
 }
 
+class Listener {
+	function onQuit( object event ) {
+		runServer = false;
+	}
+}
+
 number port = Global.ServerDefaultPort;
-object server = Network.Server.start(port);
+object server;
 
 boolean roundEndMessageSent = false;
 
-GameServer.roundTime = Global.ServerRoundTime;
-GameServer.mapName = "Test";
+object listener;
+object message;
+object event;
 
-Engine.printLine("Trying to start server at port ${port}...");
+object menu = new ImageMenu();
+menu.setImage("create_game_menu_dedicated.png");
+menu.addInvisibleButton("StartButton", 301, 436, 190, 83) using {
+	Console.printLine("trying to start server at port ${port}...");
+	server = Network.Server.start(port);
+	if( server ) {
+		Console.printLine("server started.");
+		GameServer.nextDisconnectCheck = Time.current + 10000;
+		GameServer.roundTime = Global.ServerRoundTime;
+		menu.active = false;
+		Console.toggle();
+		Console.canToggle = false;
+	}
+};
+menu.addInvisibleSlider("MapSlider", 109, 320, 555, 23, [ "Dead City", "Peaks" ]) using ( string item ) {
+	if( item == "Dead City" ) {
+		menu.getItem("MapLabel").setImage("GUI/map_dead_city.png");
+	} else if( item == "Peaks" ) {
+		menu.getItem("MapLabel").setImage("GUI/map_peaks.png");
+	}
+	GameServer.mapName = item;
+};
+menu.addImage("MapLabel", 330, 288);
+menu.getItem("MapLabel").setImage("GUI/map_dead_city.png");
+menu.registerListeners();
+menu.active = true;
 
-if( server ) {
-	object message;
-	
-	Engine.printLine("Server started.");
-	
+GameServer.mapName = "Dead City";
+
+Engine.setScreen(800, 600, false);
+
+Console.init(Engine.loadFont(Global.FontConsole, 10, 10, -2));
+Console.setHeight(Engine.screenHeight());
+
+listener = new Listener();
+EventHandler.registerListener(Engine.EVENT_QUIT, listener);
+
+Time.current = Engine.currentTime();
+Time.last = Time.current;
+Time.delta = 0;
+
+while( runServer ) {
 	Time.current = Engine.currentTime();
+	Time.delta = Time.current - Time.last;
 	Time.last = Time.current;
-	Time.delta = 0;
 	
-	GameServer.nextDisconnectCheck = Time.current + 10000;
+	EventHandler.update();
+	Engine.clearScreen();
+	menu.draw();
+	Console.draw();
+	Engine.updateScreen();
 	
-	while( true ) {
-		Time.current = Engine.currentTime();
-		Time.delta = Time.current - Time.last;
-		Time.last = Time.current;
-		
+	if( server ) {
 		GameServer.roundTime -= Time.delta;
-		
+	
 		if( GameServer.roundTime <= 0 and roundEndMessageSent == false ) {
-			Engine.printLine("Time is up. End of round. See you next time.");
+			Console.printLine("time is up. end of round. see you next time.");
 			SendRoundEnd(server);
 			GameServer.restartTime = Global.ServerRestartTime;
 			roundEndMessageSent = true;
@@ -268,6 +320,7 @@ if( server ) {
 				}
 			}
 		}
+
 		while( message = server.service(10) ) {
 			if( not roundEndMessageSent ) {
 				switch( message.type ) {
@@ -290,9 +343,7 @@ if( server ) {
 			GameServer.nextDisconnectCheck = Time.current + 10000;
 		}
 	}
-
-	server.destroy();
-} else {
-	Engine.printLine("Error.");
 }
+
+server and server.destroy();
 

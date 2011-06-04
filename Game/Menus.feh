@@ -256,7 +256,7 @@ class MenuImage {
 	object image;
 	boolean registerListeners = false;
 	function draw() {
-		Engine.drawRectangle(.x + ((Engine.screenWidth() - .menu.image.width()) / 2), .y, 10, 10, 255, 0, 0);
+		//Engine.drawRectangle(.x + ((Engine.screenWidth() - .menu.image.width()) / 2), .y, 10, 10, 255, 0, 0);
 		.image and Engine.drawImage(.image, .x + ((Engine.screenWidth() - .menu.image.width()) / 2), .y);
 	}
 	function setImage( string path ) {
