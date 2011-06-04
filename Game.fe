@@ -11,6 +11,7 @@ uses 'Game/Map.feh';
 uses 'Game/Entities.feh';
 uses 'Game/Controllers.feh';
 uses 'Game/Weapons.feh';
+uses 'Game/ScoreScreen.feh';
 
 namespace Time {
 	number current;

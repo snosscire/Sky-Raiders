@@ -19,6 +19,7 @@ class Player {
 	number spriteAngle;
 	number speed;
 	number health;
+	number score;
 }
 
 function GetNextID() {
@@ -104,6 +105,7 @@ function HandlePlayerHit( object server, object dataMessage ) {
 		Engine.printLine("${shooter.name} (${shooter.id}) hit ${player.name} (${player.id}) for ${message.damage} damage.");
 	} else {
 		Engine.printLine("${shooter.name} (${shooter.id}) killed ${player.name} (${player.id}).");
+		shooter.score++;
 	}
 }
 
@@ -128,7 +130,7 @@ if( server ) {
 	Engine.printLine("Server started.");
 	
 	while( true ) {
-		while( message = server.service(1000) ) {
+		while( message = server.service(0) ) {
 			switch( message.type ) {
 				case Network.MESSAGE_CONNECT:    HandleConnect(server, message); break;
 				case Network.MESSAGE_DISCONNECT: HandleDisconnect(server, message); break;

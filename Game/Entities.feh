@@ -81,6 +81,7 @@ class Player extends Entity {
 	number id;
 	boolean me;
 	string name;
+	number score;
 	
 	number health;
 	number turningSpeed;
@@ -319,6 +320,7 @@ class Player extends Entity {
 				Console.printLine("${shooter.name} hit ${.name} for ${damage} damage.");
 			} else {
 				Console.printLine("${shooter.name} killed ${.name}.");
+				Game.players.keyExists("Player/${shooter.id}") and Game.players["Player/${shooter.id}"].score++;
 			}
 
 		}

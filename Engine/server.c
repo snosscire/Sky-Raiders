@@ -6,7 +6,7 @@ int main(int argc, char *argv[] )
 	char *error_message = NULL;
 	
 	SDL_Init(SDL_INIT_VIDEO);
-	//SDL_EnableUNICODE(1);
+	SDL_EnableUNICODE(1);
 	enet_initialize();
 	
 	if( ferite_init(0, NULL) )
