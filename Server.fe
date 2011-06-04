@@ -54,7 +54,6 @@ function GetNextID() {
 
 function GetNextSpawnLocation() {
 	array spawn;
-	Engine.printLine("Map: ${GameServer.mapName}");
 	spawn = Global.Maps[GameServer.mapName]['spawns'][GameServer.spawnLocationIndex];
 	GameServer.spawnLocationIndex++;
 	if( GameServer.spawnLocationIndex > 7 ) {
