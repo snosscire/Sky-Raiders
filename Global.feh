@@ -11,7 +11,7 @@ namespace Global {
 	/*************************************************************************
 	 * Player
 	 *************************************************************************/
-	string PlayerSprite = "ssh-askpass-gnome.png";
+	string PlayerSprite = "bi_plane.png";
 	number PlayerSpeed = 2.3;
 	number PlayerTurningSpeed = 1.2;
 	number PlayerStartX = 200;
@@ -73,7 +73,7 @@ Global.Maps["Test"] = [
 		],
 		[
 			"screen-x" => 0,
-			"screen-y" => -341,
+			"screen-y" => -520,
 			"level"    => -4,
 			"speed"    => 0.4,
 			"image"    => "enviorment/mountains_back.png"
@@ -81,14 +81,14 @@ Global.Maps["Test"] = [
 		],
 		[
 			"screen-x" => 0,
-			"screen-y" => -80,
+			"screen-y" => -100,
 			"level"    => -3,
 			"speed"    => 0.6,
 			"image"    => "enviorment/hills_mid.png"
 		],
 		[
 			"screen-x" => 0,
-			"screen-y" => -36,
+			"screen-y" => -59,
 			"level"    => -1,
 			"speed"    => 1.0,
 			"image"    => "enviorment/ground_bottom.png"
@@ -98,7 +98,7 @@ Global.Maps["Test"] = [
 			"screen-y" => 0,
 			"level"    => 1,
 			"speed"    => 1.0,
-			"image"    => "enviorment/clouds_top_small.png"
+			"image"    => "enviorment/clouds_top.png"
 		]
 	]
 ];
