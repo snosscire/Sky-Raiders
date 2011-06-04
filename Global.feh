@@ -13,12 +13,12 @@ namespace Global {
 	 *************************************************************************/
 	string PlayerSpriteLeft = "bi_plane_left.png";
 	string PlayerSpriteRight = "bi_plane_right.png";
-	number PlayerSpeed = 2.3;
-	number PlayerTurningSpeed = 1.2;
+	number PlayerSpeed = 2.5;
+	number PlayerTurningSpeed = 1.4;
 	number PlayerStartX = 200;
 	number PlayerStartY = 100;
 	number PlayerStartAngle = 0.0;
-	number PlayerStartHealth = 400.0;
+	number PlayerStartHealth = 100.0;
 	number PlayerRespawnTime = 2000;
 	/********* Smoke Puffs **********/
 	string PlayerSmokePuffSprite = "smoke.png";
@@ -45,7 +45,7 @@ namespace Global {
 	string MachineGunBulletSprite = "bullet.png";
 	number MachineGunBulletOnScreenAmount = 100;
 	number MachineGunBulletSpeed = 5.0;
-	number MachineGunBulletDamage = 50.0;
+	number MachineGunBulletDamage = 25.0;
 	/*************************************************************************
 	 * Server
 	 *************************************************************************/
@@ -71,38 +71,48 @@ Global.Maps["Test"] = [
 			"screen-x" => 0,
 			"screen-y" => 0,
 			"level"    => -5,
-			"speed"    => 0.2,
-			"image"    => "enviorment/sky_BG.png"
+			"speed"    => 0.1,
+			"image"    => "enviorment/sky_city.png"
 		],
 		[
-			"screen-x" => 0,
-			"screen-y" => -520,
+			"screen-x" => -5000,
+			"screen-y" => -700,
 			"level"    => -4,
-			"speed"    => 0.4,
-			"image"    => "enviorment/mountains_back.png"
+			"speed"    => 0.3,
+			"image"    => "enviorment/back_city.png"
 			//"alpha"    => [ "red" => 253, "green" => 203, "blue" => 203 ]
 		],
 		[
 			"screen-x" => 0,
-			"screen-y" => -100,
+			"screen-y" => -320,
 			"level"    => -3,
-			"speed"    => 0.6,
-			"image"    => "enviorment/hills_mid.png"
+			"speed"    => 0.5,
+			"image"    => "enviorment/mid_city.png"
 		],
 		[
 			"screen-x" => 0,
-			"screen-y" => -59,
+			"screen-y" => -44,
 			"level"    => -1,
 			"speed"    => 1.0,
-			"image"    => "enviorment/ground_bottom.png"
+			"image"    => "enviorment/ground_city.png"
 		],
 		[
 			"screen-x" => 0,
 			"screen-y" => 0,
 			"level"    => 1,
 			"speed"    => 1.0,
-			"image"    => "enviorment/clouds_top.png"
+			"image"    => "enviorment/clouds_top_city.png"
 		]
+	],
+	"spawns" => [
+		[ "x" => 200, "y" => 100 ],
+		[ "x" => 100, "y" => 400 ],
+		[ "x" => 500, "y" => 100 ],
+		[ "x" => 400, "y" => 400 ],
+		[ "x" => 1000, "y" => 100 ],
+		[ "x" => 900, "y" => 400 ],
+		[ "x" => 1500, "y" => 100 ],
+		[ "x" => 1400, "y" => 400 ]
 	]
 ];
 

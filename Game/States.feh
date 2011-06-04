@@ -220,6 +220,8 @@ class MultiplayerState extends State {
 		player.turningSpeed = Global.PlayerTurningSpeed;
 		player.x = message.x;
 		player.y = message.y;
+		player.spawnLocationX = message.x;
+		player.spawnLocationY = message.y;
 		
 		if( me ) {
 			//Console.printLine('using keyboard controller.');
@@ -293,8 +295,8 @@ class MultiplayerState extends State {
 	}
 	function onGameRestart( object message ) {
 		.players.each() using ( player ) {
-			player.x = Global.PlayerStartX;
-			player.y = Global.PlayerStartY;
+			player.x = player.spawnLocationX;
+			player.y = player.spawnLocationY;
 			player.angle = Global.PlayerStartAngle;
 			player.spriteAngle = Global.PlayerStartAngle;
 			player.speed = Global.PlayerSpeed;

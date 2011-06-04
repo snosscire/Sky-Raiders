@@ -67,7 +67,7 @@ namespace modifies Network {
 		number speed;
 		number angle;
 		number spriteAngle;
-		number health;
+		//number health;
 		boolean shoot;
 		static function fromPlayer( object player ) {
 			object message = new Network.PlayerUpdateMessage();
@@ -78,7 +78,7 @@ namespace modifies Network {
 			message.speed = player.speed;
 			message.angle = player.angle;
 			message.spriteAngle = player.spriteAngle;
-			message.health = player.health;
+			//message.health = player.health;
 			message.shoot = player.shotWeaponInLastUpdate();
 			return message;
 		}
@@ -91,7 +91,7 @@ namespace modifies Network {
 			message.speed = Network.readDoubleFromData(data);
 			message.angle = Network.readDoubleFromData(data);
 			message.spriteAngle = Network.readDoubleFromData(data);
-			message.health = Network.readByteFromData(data);
+			//message.health = Network.readByteFromData(data);
 			message.shoot = (Network.readByteFromData(data) ? true : false);
 			return message;
 		}
@@ -104,7 +104,7 @@ namespace modifies Network {
 			Network.addDoubleToData(data, .speed);
 			Network.addDoubleToData(data, .angle);
 			Network.addDoubleToData(data, .spriteAngle);
-			Network.addByteToData(data, .health);
+			//Network.addByteToData(data, .health);
 			Network.addByteToData(data, (.shoot ? 1 : 0));
 			return data;		
 		}

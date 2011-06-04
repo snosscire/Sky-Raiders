@@ -15,6 +15,8 @@ namespace GameServer {
 	number roundTime;
 	number restartTime;
 	number nextDisconnectCheck;
+	string mapName;
+	number spawnLocationIndex = 0;
 	array players;
 }
 
@@ -36,6 +38,15 @@ function GetNextID() {
 	number id = GameServer.nextID;
 	GameServer.nextID--;
 	return id;
+}
+
+function GetNextSpawnLocation() {
+	array spawn = Global.Maps[GameServer.mapName]['spawns'][GameServer.spawnLocationIndex];
+	GameServer.spawnLocationIndex++;
+	if( GameServer.spawnLocationIndex > 7 ) {
+		GameServer.spawnLocationIndex = 0;
+	}
+	return spawn;
 }
 
 function HandleConnect( object server, object connectMessage ) {
@@ -78,6 +89,7 @@ function HandleInitializeJoin( object server, object dataMessage ) {
 	object newPlayer;
 	object newPlayerMessage;
 	string newPlayerMessageData;
+	array spawnLocation = GetNextSpawnLocation();
 
 	Engine.printLine('Initialize Join message recieved - creating player...');
 	
@@ -85,11 +97,11 @@ function HandleInitializeJoin( object server, object dataMessage ) {
 	newPlayer.peer = dataMessage.peer;
 	newPlayer.id = GetNextID();
 	newPlayer.name = initializeJoinMessage.name;
-	newPlayer.x = 200;
-	newPlayer.y = 100;
-	newPlayer.angle = 0;
-	newPlayer.spriteAngle = 0;
-	newPlayer.speed = 1.8;
+	newPlayer.x = spawnLocation['x'];
+	newPlayer.y = spawnLocation['y'];
+	newPlayer.angle = Global.PlayerStartAngle;
+	newPlayer.spriteAngle = Global.PlayerStartAngle;
+	newPlayer.speed = Global.PlayerSpeed;
 
 	Engine.printLine("Created player ${newPlayer.name} (${newPlayer.id}).");
 	
@@ -120,7 +132,7 @@ function HandlePlayerUpdate( object server, object dataMessage ) {
 		player.angle = message.angle;
 		player.spriteAngle = message.spriteAngle;
 		player.speed = message.speed;
-		player.health = message.health;
+		//player.health = message.health;
 		player.lastUpdate = Time.current;
 		GameServer.players.each() using ( player ) {
 			if( player.id != message.id ) {
@@ -186,8 +198,8 @@ function SendGameRestart( object server ) {
 	object message = new Network.GameRestartMessage();
 	string data = message.toData();
 	GameServer.players.each() using ( player ) {
-		player.x = Global.PlayerStartX;
-		player.y = Global.PlayerStartY;
+		player.x = player.spawnLocationX;
+		player.y = player.spawnLocationY;
 		player.angle = Global.PlayerStartAngle;
 		player.spriteAngle = Global.PlayerStartAngle;
 		player.health = Global.PlayerStartHealth;
@@ -203,6 +215,7 @@ object server = Network.Server.start(port);
 boolean roundEndMessageSent = false;
 
 GameServer.roundTime = Global.ServerRoundTime;
+GameServer.mapName = "Test";
 
 Engine.printLine("Trying to start server at port ${port}...");
 

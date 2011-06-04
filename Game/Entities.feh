@@ -148,6 +148,9 @@ class Player extends Entity {
 	
 	object playerSprite;
 	
+	number spawnLocationX;
+	number spawnLocationY;
+	
 	constructor {
 		.playerSprite = new PlayerSprite();
 		.health = Global.PlayerStartHealth;;
@@ -265,9 +268,9 @@ class Player extends Entity {
 		}
 		.deathExplosion.update(deltaTime);
 		
-		if( .health <= 0.0 and Time.current >= .timeOfDeath + Global.PlayerRespawnTime ) {
-			.x = Global.PlayerStartX;
-			.y = Global.PlayerStartY;
+		if( .me and (.health <= 0.0 and Time.current >= .timeOfDeath + Global.PlayerRespawnTime) ) {
+			.x = .spawnLocationX;
+			.y = .spawnLocationY;
 			.angle = Global.PlayerStartAngle;
 			.spriteAngle = Global.PlayerStartAngle;
 			.health = Global.PlayerStartHealth;

@@ -79,7 +79,7 @@ class NetworkPlayerController extends Controller {
 			.player.speed = message.speed;
 			.player.angle = message.angle;
 			.player.spriteAngle = message.spriteAngle;
-			.player.health = message.health;
+			//.player.health = message.health;
 			message.shoot and .player.shoot();
 		}
 	}
