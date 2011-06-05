@@ -281,6 +281,8 @@ class Player extends Entity {
 			.stalling = false;
 		} else if( (.health <= 0.0 and Time.current >= .timeOfDeath + Global.PlayerRespawnTime) ) {
 			.health = Global.PlayerStartHealth;
+			.x = 9999;
+			.y = 100;
 		}
 	}
 	
