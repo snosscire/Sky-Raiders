@@ -7,7 +7,9 @@ namespace modifies Engine {
 	number PI180 = 0.017453292;
 	string resourcePath;
 	string imageResourcePath;
+	string soundResourcePath;
 	array imageResources;
+	array soundResources;
 	array fonts;
 	function loadImageResource( string path, boolean convert ) {
 		object image;
@@ -48,6 +50,22 @@ namespace modifies Engine {
 			image.unload();
 		};
 	}
+	function loadSoundResource( string path ) {
+		object sound;
+		if( not .soundResources.keyExists(path) ) {
+			string completePath = .soundResourcePath + path;
+			Engine.printLine("[Game] Loading sound resource: ${completePath}");
+			sound = Engine.loadSound(completePath);
+			if( not sound ) {
+				Engine.printLine("[Game] Error: could not load sound '${completePath}'.");
+			} else {
+				.soundResources[path] = sound;
+			}
+		} else {
+			sound = .soundResources[path];
+		}
+		return sound;
+	}
 	function loadFont( string filename, number width, number height, number rightMargin ) {
 		if( not .fonts.keyExists(filename) ) {
 			object font = new Font(filename, width, height, rightMargin);
@@ -75,5 +93,6 @@ namespace modifies Engine {
 //Engine.resourcePath = Engine.currentWorkingDirectory() + '/Resources/';
 Engine.resourcePath = './Resources/';
 Engine.imageResourcePath = Engine.resourcePath + 'Images/';
+Engine.soundResourcePath = Engine.resourcePath + 'sounds/';
 //Engine.printLine('Resource path: ' + Engine.resourcePath);
 

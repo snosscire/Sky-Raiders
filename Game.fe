@@ -50,15 +50,12 @@ class modifies Game {
 			EventHandler.registerListener(Engine.EVENT_QUIT, this);
 			
 			Engine.setScreen(Global.DefaultScreenWidth, Global.DefaultScreenHeight, Global.DefaultFullScreenState);
-			//Engine.setScreen(1280, 800, true);
-			//Engine.setScreen(640, 480, true);
+			Engine.setSoundChannels(32);
 			
 			font = Engine.loadFont(Global.FontFPS, 10, 10);
 			
 			Console.init(Engine.loadFont(Global.FontConsole, 10, 10, -2));
 			Console.setHeight(Engine.screenHeight() / 2);
-			//Console.init(Engine.loadFont('font-bachler.bmp', 10, 10));
-			//Console.init(font);
 			
 			Console.registerCommand('quit', closure( parameters ) {
 				Game.quit();

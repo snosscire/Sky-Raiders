@@ -29,6 +29,7 @@ namespace Global {
 	number PlayerHitExplosionGrowTime = 12;
 	number PlayerHitExplosionShrinkTime = 62;
 	/********* Death Explosion **********/
+	string PlayerExplosionSound = "explosion.wav";
 	string PlayerExplosionSprite = "explosion.png";
 	number PlayerExplosionGrowTime = 25;
 	number PlayerExplosionShrinkTime = 125;
@@ -41,6 +42,7 @@ namespace Global {
 	* Weapons
 	**************************************************************************/
 	/********* Machine Gun **********/
+	string MachineGunSound = "shot.wav";
 	string MachineGunBulletSprite = "bullet.png";
 	number MachineGunBulletOnScreenAmount = 100;
 	number MachineGunBulletSpeed = 5.0;

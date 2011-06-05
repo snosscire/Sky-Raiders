@@ -3,6 +3,19 @@ class Game {
 		Console.registerCommand('start_test', closure( parameters ) {
 			Game.setState(Game.testState());
 		});
+		Console.registerCommand('map', closure( parameters ) {
+			if( parameters.size() == 1 ) {
+				number mapNumber = parameters[0].toNumber();
+				if( mapNumber >= 0 and mapNumber < Global.Maps.size() ) {
+					object state = Game.testState();
+					state.mapName = Global.Maps[mapNumber]['name'];
+					Game.setState(state);
+				}
+			}
+		});
+		Console.registerCommand('menu', closure( parameters ) {
+			Game.setState(Game.menuState());
+		});
 		Console.registerCommand('connect', closure( parameters ) {
 			if( parameters.size() <= 2 ) {
 				string host = (parameters.size() >= 1 ? parameters[0] : 'localhost');

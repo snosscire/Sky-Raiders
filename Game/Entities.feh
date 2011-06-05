@@ -473,7 +473,9 @@ class DeathExplosion extends Entity {
 	number currentGrowTime;
 	number currentShrinkTime;
 	array smokePuffs;
+	object sound;
 	constructor {
+		.sound = Engine.loadSoundResource(Global.PlayerExplosionSound);
 		.sprite = Engine.loadImageResource(Global.PlayerExplosionSprite);
 		for( number i = 0; i < Global.PlayerExplosionSmokePuffAmount; i++ ) {
 			.smokePuffs[] = new ExplosionSmokePuff();
@@ -489,7 +491,7 @@ class DeathExplosion extends Entity {
 		for( number i = 0; i < Global.PlayerExplosionSmokePuffAmount; i++ ) {
 			.smokePuffs[i].init(x, y);
 		}
-		
+		.sound and .sound.play();
 	}
 	function update( number deltaTime ) {
 		for( number i = 0; i < Global.PlayerExplosionSmokePuffAmount; i++ ) {

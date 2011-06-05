@@ -13,6 +13,7 @@ all:
 		Engine/engine.c \
 		Engine/key.c \
 		Engine/image.c \
+		Engine/sound.c \
 		Engine/network_enet.c
 	gcc -g -Wall -o server \
 		`ferite-config --cflags --libs` \
@@ -28,4 +29,5 @@ all:
 		Engine/engine.c \
 		Engine/key.c \
 		Engine/image.c \
+		Engine/sound.c \
 		Engine/network_enet.c

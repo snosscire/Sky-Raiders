@@ -31,5 +31,6 @@
 #include "key.h"
 #include "image.h"
 #include "network.h"
+#include "sound.h"
 
 #endif

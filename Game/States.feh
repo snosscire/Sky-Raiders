@@ -8,11 +8,12 @@ class State {
 }
 
 class TestState extends State {
+	string mapName;
 	object map;
 	object playerCamera;
 	object player;
 	function init() {
-		.map = Map.load("Test");
+		.map = Map.load(.mapName);
 		
 		.playerCamera = new Camera();
 		
@@ -28,6 +29,8 @@ class TestState extends State {
 		.player.turningSpeed = Global.PlayerTurningSpeed;
 		.player.x = Global.PlayerStartX;
 		.player.y = Global.PlayerStartY;
+		.player.spawnLocationX = Global.PlayerStartX;
+		.player.spawnLocationY = Global.PlayerStartY;
 		
 		.active = true;
 		
@@ -374,7 +377,7 @@ class MenuState extends State {
 	object currentMenu;
 	boolean menusInited = false;
 	function init() {
-		Engine.playSound("Resources/music/music.wav");
+		Engine.playMusic("Resources/music/music.wav");
 		if( not .menusInited ) {
 			.mainMenu = new ImageMenu();
 			.mainMenu.setImage("main_menu_indexed.png");
@@ -469,6 +472,9 @@ class MenuState extends State {
 				} else if ( selectedResolution == "1280x1024" ) {
 					newScreenWidth = 1280;
 					newScreenHeight = 1024;
+				} else if ( selectedResolution == "1920x1080" ) {
+					newScreenWidth = 1920;
+					newScreenHeight = 1080;
 				}
 				Engine.setScreen(newScreenWidth, newScreenHeight, fullscreen);
 				Game.showFPS = .settingsMenu.getItem("ShowFpsCheckBox").checked;
@@ -490,7 +496,7 @@ class MenuState extends State {
 					.settingsMenu.getItem("ResolutionLabel").setImage("GUI/1280_800.png");
 				} else if( item == "16:9" ) {
 					.settingsMenu.getItem("AspectRatioLabel").setImage("GUI/16_9.png");
-					.settingsMenu.getItem("ScreenResolutionSlider").options = [ "1280x720" ];
+					.settingsMenu.getItem("ScreenResolutionSlider").options = [ "1280x720", "1920x1080" ];
 					.settingsMenu.getItem("ScreenResolutionSlider").selectedOption = "1280x720";
 					.settingsMenu.getItem("ResolutionLabel").setImage("GUI/1280_720.png");
 				}
@@ -501,6 +507,7 @@ class MenuState extends State {
 				else if( item == "1280x720" ) .settingsMenu.getItem("ResolutionLabel").setImage("GUI/1280_720.png");
 				else if( item == "1280x800" ) .settingsMenu.getItem("ResolutionLabel").setImage("GUI/1280_800.png");
 				else if( item == "1280x1024" ) .settingsMenu.getItem("ResolutionLabel").setImage("GUI/1280_1024.png");
+				else if( item == "1920x1080" ) .settingsMenu.getItem("ResolutionLabel").setImage("GUI/1920_1080.png");
 			};
 			.settingsMenu.getItem("ScreenResolutionSlider").selectedOption = "1024x768";
 			// aspect ratio text

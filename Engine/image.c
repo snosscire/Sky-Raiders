@@ -12,7 +12,7 @@ FE_NATIVE_FUNCTION( game_engine_image_width )
 {
 	FeriteObject *self = FE_CONTAINER_TO_OBJECT;
 	SDL_Surface *image = self->odata;
-	FeriteVariable *width = ferite_create_number_long_variable(script, "width", image->w, FE_STATIC);
+	FeriteVariable *width = ferite_create_number_long_variable(script, "width", (image ? image->w : 0), FE_STATIC);
 	MARK_VARIABLE_AS_DISPOSABLE(width);
 	FE_RETURN_VAR(width);
 }
@@ -21,7 +21,7 @@ FE_NATIVE_FUNCTION( game_engine_image_height )
 {
 	FeriteObject *self = FE_CONTAINER_TO_OBJECT;
 	SDL_Surface *image = self->odata;
-	FeriteVariable *height = ferite_create_number_long_variable(script, "height", image->h, FE_STATIC);
+	FeriteVariable *height = ferite_create_number_long_variable(script, "height", (image ? image->h : 0), FE_STATIC);
 	MARK_VARIABLE_AS_DISPOSABLE(height);
 	FE_RETURN_VAR(height);
 }

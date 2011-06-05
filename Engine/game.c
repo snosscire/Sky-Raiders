@@ -7,17 +7,16 @@ int main(int argc, char *argv[] )
 	
 	SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO);
 	SDL_EnableUNICODE(1);
+	
 	enet_initialize();
-
-  int audio_rate = 22050;
-  Uint16 audio_format = AUDIO_S16; /* 16-bit stereo */
-  int audio_channels = 2;
-  int audio_buffers = 4096;
-
-  if(Mix_OpenAudio(audio_rate, audio_format, audio_channels, audio_buffers)) {
-    printf("Unable to open audio!\n");
-  }
-
+	
+	Mix_Init(0);
+	
+	int audio_rate = 22050;
+	Uint16 audio_format = AUDIO_S16; /* 16-bit stereo */
+	int audio_channels = 2;
+	int audio_buffers = 4096;
+	Mix_OpenAudio(audio_rate, audio_format, audio_channels, audio_buffers);
 	
 	srand(time(NULL));
 	
@@ -53,7 +52,10 @@ int main(int argc, char *argv[] )
 	}
 	
 	enet_deinitialize();
+	
 	Mix_CloseAudio();
+	Mix_Quit();
+	
 	SDL_Quit();
 	
 	return 0;
