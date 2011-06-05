@@ -12,7 +12,9 @@ FE_NATIVE_FUNCTION( game_engine_set_screen )
 	
 	ferite_get_parameters(params, 3, &width, &height, &fullscreen);
 
+	flags |= SDL_HWPALETTE;
 	flags |= SDL_HWSURFACE;
+	flags |= SDL_HWACCEL;
 	flags |= SDL_DOUBLEBUF;
 	
 	if( fullscreen )
@@ -23,7 +25,7 @@ FE_NATIVE_FUNCTION( game_engine_set_screen )
 	screen = SDL_SetVideoMode((int)width, (int)height, 0, flags);
 	if( screen )
 	{
-		SDL_SetColorKey(screen, SDL_SRCCOLORKEY | SDL_RLEACCEL, SDL_MapRGB(screen->format, 0, 0, 0));
+		//SDL_SetColorKey(screen, SDL_SRCCOLORKEY | SDL_RLEACCEL, SDL_MapRGB(screen->format, 0, 0, 0));
 		FE_RETURN_TRUE;
 	}
 	FE_RETURN_FALSE;
@@ -210,12 +212,9 @@ FE_NATIVE_FUNCTION( game_engine_load_image )
 	image = IMG_Load(path->data);
 	if( image )
 	{
-		if( convert )
-		{
-			SDL_Surface *new = SDL_ConvertSurface(image, screen->format, SDL_SWSURFACE);
-			SDL_FreeSurface(image);
-			image = new;
-		}
+		SDL_Surface *new = SDL_DisplayFormatAlpha(image);
+		SDL_FreeSurface(image);
+		image = new;
 		FeriteNamespaceBucket *nsb = ferite_find_namespace(script, script->mainns, "Engine.Image", FENS_CLS);
 		FeriteVariable *image_variable = ferite_build_object(script, nsb->data);
 		VAO(image_variable)->odata = image;
