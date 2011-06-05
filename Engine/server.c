@@ -11,7 +11,7 @@ int main(int argc, char *argv[] )
 	
 	if( ferite_init(0, NULL) )
 	{
-		script = ferite_script_compile("finalserver.fe");
+		script = ferite_script_compile("Server.fe");
 		if( ferite_has_compile_error(script) )
 		{
 			error_message = ferite_get_error_log(script);
