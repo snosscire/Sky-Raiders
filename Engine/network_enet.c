@@ -17,7 +17,7 @@ FE_NATIVE_FUNCTION( game_engine_network_server_start )
 	address.host = ENET_HOST_ANY;
 	address.port = (enet_uint16)port;
 	
-	server = enet_host_create(&address, 32, 0, 0);
+	server = enet_host_create(&address, 32, 0, 0, 0);
 	if( server )
 	{
 		FeriteNamespaceBucket *nsb = ferite_find_namespace(script, script->mainns, "Network.Server", FENS_CLS);
@@ -71,7 +71,7 @@ FE_NATIVE_FUNCTION( game_engine_network_server_service )
 				FeriteVariable *session_id_variable = NULL;
 				FeriteVariable *type_variable = NULL;
 				
-				session_id_variable = ferite_create_number_long_variable(script, "sessionID", event.peer->sessionID, FE_STATIC);
+				session_id_variable = ferite_create_number_long_variable(script, "sessionID", event.peer->incomingSessionID, FE_STATIC);
 				type_variable = ferite_create_number_long_variable(script, "type", event.type, FE_STATIC);
 				
 				peer_variable = ferite_build_object(script, (ferite_find_namespace(script, script->mainns, "Network.Peer", FENS_CLS))->data);
@@ -94,7 +94,7 @@ FE_NATIVE_FUNCTION( game_engine_network_server_service )
 				FeriteVariable *session_id_variable = NULL;
 				FeriteVariable *type_variable = NULL;
 				
-				session_id_variable = ferite_create_number_long_variable(script, "sessionID", event.peer->sessionID, FE_STATIC);
+				session_id_variable = ferite_create_number_long_variable(script, "sessionID", event.peer->incomingSessionID, FE_STATIC);
 				type_variable = ferite_create_number_long_variable(script, "type", event.type, FE_STATIC);
 				
 				peer_variable = ferite_build_object(script, (ferite_find_namespace(script, script->mainns, "Network.Peer", FENS_CLS))->data);;
@@ -118,7 +118,7 @@ FE_NATIVE_FUNCTION( game_engine_network_server_service )
 				FeriteVariable *type_variable = NULL;
 				FeriteVariable *data_variable = NULL;
 
-				session_id_variable = ferite_create_number_long_variable(script, "sessionID", event.peer->sessionID, FE_STATIC);
+				session_id_variable = ferite_create_number_long_variable(script, "sessionID", event.peer->incomingSessionID, FE_STATIC);
 				type_variable = ferite_create_number_long_variable(script, "type", event.type, FE_STATIC);
 				data_variable = ferite_create_string_variable_from_ptr(script, "data", (char *)event.packet->data, event.packet->dataLength, FE_CHARSET_DEFAULT, FE_STATIC);
 				
@@ -186,10 +186,10 @@ FE_NATIVE_FUNCTION( game_engine_network_client_start )
 	enet_address_set_host(&address, hostname->data);
 	address.port = port;
 	
-	host = enet_host_create(NULL, 1, 0, 0);
+	host = enet_host_create(NULL, 1, 0, 0, 0);
 	if( host )
 	{
-		ENetPeer *peer = enet_host_connect(host, &address, 2);
+		ENetPeer *peer = enet_host_connect(host, &address, 2, 0);
 		if( peer )
 		{
 			Client *client = (Client *)malloc(sizeof(Client));
